@@ -51,8 +51,8 @@ h2 {
   text-align: center;
   margin-bottom: 25px;
   color: #2D3748;
-  font-size: 28px;
-  font-weight: 600;
+  font-size: 34px;
+  font-weight: 700;
 }
 
 .signup-form {
@@ -107,9 +107,9 @@ h2 {
   cursor: pointer;
   font-size: 14px;
   font-weight: 500;
-  user-select: none;
   transition: color 0.2s;
 }
+
 
 .password-field span:hover {
   color: #3182CE;

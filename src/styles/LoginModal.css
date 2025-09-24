@@ -1,181 +1,199 @@
-/* Overlay */
+/* src/styles/LoginModal.css */
 .modal-overlay {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.6);
+  background-color: rgba(0, 0, 0, 0.6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.modal-content {
+  background-color: white;
+  border-radius: 12px;
+  width: 450px;
+  max-width: 100%;
+  position: relative;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+  padding: 30px;
+}
+
+.close-btn {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  background: none;
+  border: none;
+  font-size: 28px;
+  cursor: pointer;
+  color: #888;
+  transition: color 0.2s;
+  line-height: 1;
+  padding: 0;
+  width: 30px;
+  height: 30px;
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 999;
 }
 
-/* Modal Box */
-.modal-content {
-  background: #fff;
-  display: flex;
-  width: 850px;
-  max-width: 95%;
-  border-radius: 12px;
-  overflow: hidden;
-  position: relative;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
-  animation: fadeIn 0.3s ease-in-out;
-}
-
-/* Left Side */
-.modal-left {
-  flex: 1;
-  padding: 2rem;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-}
-
-.modal-header {
-  text-align: left;
-  margin-bottom: 1.5rem;
-}
-
-.modal-header .logo {
-  width: 55px;
-  margin-bottom: 10px;
-}
-
-.modal-header h2 {
-  margin-bottom: 6px;
-  color: #2d6a4f;
-  font-size: 1.8rem;
-}
-
-.modal-header p {
-  font-size: 0.95rem;
-  color: #555;
-}
-
-/* Form */
-.login-form {
-  display: flex;
-  flex-direction: column;
-  margin-top: 1rem;
-}
-
-.login-form label {
-  font-size: 0.9rem;
-  margin: 8px 0 4px;
-  font-weight: 500;
+.close-btn:hover {
   color: #333;
 }
 
+.modal-header {
+  text-align: center;
+  margin-bottom: 25px;
+}
+
+.modal-header h2 {
+  margin-bottom: 10px;
+  color: #2D3748;
+  font-size: 54px;
+  font-weight: 700;
+}
+
+.modal-header p {
+  color: #718096;
+  font-size: 16px;
+  margin: 0;
+}
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.login-form label {
+  font-size: 14px;
+  font-weight: 500;
+  color: #4A5568;
+  margin-bottom: -10px;
+  text-align: left; /* Left-aligned labels */
+}
+
 .login-form input {
-  padding: 12px;
-  border: 1px solid #ccc;
+  padding: 14px 16px;
+  border: 1px solid #E2E8F0;
   border-radius: 8px;
-  outline: none;
-  font-size: 0.95rem;
-  transition: border 0.2s;
+  font-size: 16px;
+  transition: all 0.2s;
+  width: 100%;
 }
 
 .login-form input:focus {
-  border-color: #2d6a4f;
-  box-shadow: 0 0 4px rgba(45, 106, 79, 0.3);
+  outline: none;
+  border-color: #4299E1;
+  box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.2);
 }
 
-/* Button */
+.error-text {
+  color: #E53E3E;
+  font-size: 14px;
+  margin-top: 5px;
+  text-align: left; /* Left-aligned error text */
+}
+
 .login-btn {
-  margin-top: 18px;
-  background: #2d6a4f;
+  background-color: #10b981;
   color: white;
   border: none;
-  padding: 12px;
+  padding: 14px;
   border-radius: 8px;
-  cursor: pointer;
-  font-size: 1rem;
+  font-size: 16px;
   font-weight: 600;
-  transition: background 0.3s;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  margin-top: 10px;
+  width: 100%;
 }
 
 .login-btn:hover {
-  background: #1b4332;
+  background-color: #1A202C;
 }
 
-/* Links */
 .extra-links {
-  margin-top: 1rem;
+  text-align: center;
+  margin-top: 20px;
 }
 
 .forgot {
-  display: block;
-  font-size: 0.85rem;
-  color: #2d6a4f;
-  text-decoration: none;
-  margin-bottom: 8px;
+  background: none;    /* remove grey bg */
+  border: none; 
+  color: #4299E1;
+  font-size: 14px;
+  margin: 0;
+  text-align: left; /* Left-aligned forgot password link */
 }
 
 .forgot:hover {
+  color: #3182CE;
   text-decoration: underline;
 }
 
 .signup-text {
-  font-size: 0.9rem;
-  color: #444;
+  color: #718096;
+  font-size: 15px;
+  margin: 0;
+  text-align: center;
 }
 
 .signup-text a {
-  color: #2d6a4f;
-  font-weight: 600;
+  color: #4299E1;
   text-decoration: none;
+  font-weight: 500;
+  transition: color 0.2s;
+  cursor: pointer;
 }
 
 .signup-text a:hover {
+  color: #3182CE;
   text-decoration: underline;
 }
 
-/* Right Side (Image) */
-.modal-right {
-  flex: 1;
-  background: #f1fdf4;
-}
-
-.modal-right img {
+.google-btn {
+  background-color: white;
+  border: 1px solid #ccc;
+  color: #444;
+  font-size: 14px;
+  padding: 10px;
+  border-radius: 5px;
   width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-/* Close Button */
-.close-btn {
-  position: absolute;
-  top: 12px;
-  right: 15px;
-  border: none;
-  background: transparent;
-  font-size: 20px;
   cursor: pointer;
-  color: #333;
-  transition: color 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  transition: 0.2s;
 }
 
-.close-btn:hover {
-  color: #d00000;
+.google-btn:hover {
+  background-color: #f5f5f5;
 }
 
-/* Animation */
-@keyframes fadeIn {
-  from { opacity: 0; transform: scale(0.95); }
-  to { opacity: 1; transform: scale(1); }
-}
-
-/* Responsive */
-@media (max-width: 768px) {
+/* Responsive design */
+@media (max-width: 500px) {
   .modal-content {
-    flex-direction: column;
-    width: 95%;
+    padding: 25px 20px;
+    width: 100%;
   }
-
-  .modal-right {
-    display: none; /* hide image on mobile */
+  
+  .modal-header h2 {
+    font-size: 24px;
+  }
+  
+  .modal-header .logo {
+    height: 60px;
   }
 }
