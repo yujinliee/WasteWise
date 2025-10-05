@@ -1,160 +1,154 @@
-// src/pages/LoginModal.js
 import React, { useState } from "react";
-import "../styles/LoginModal.css";
 import {
   signInWithEmailAndPassword,
   signInWithPopup,
-  fetchSignInMethodsForEmail,
-  linkWithCredential,
-  EmailAuthProvider,
   signOut,
   sendEmailVerification,
 } from "firebase/auth";
 import { auth, googleProvider } from "../Components/firebase";
 import { useNavigate } from "react-router-dom";
 import ForgotPasswordModal from "./ForgotPasswordModal";
+import SuccessPopup from "../Components/SuccessPopup";
 
 function LoginModal({ open, handleClose }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [showForgot, setShowForgot] = useState(false);
   const [showResend, setShowResend] = useState(false);
+  const [successOpen, setSuccessOpen] = useState(false);
   const navigate = useNavigate();
 
   if (!open) return null;
 
-  // ✅ Email/Password login with verification check
   const handleLogin = async (e) => {
     e.preventDefault();
     setError("");
-    setShowResend(false);
-
     try {
       const result = await signInWithEmailAndPassword(auth, email, password);
       const user = result.user;
 
-      if (!user.emailVerified) {
-        await signOut(auth); // force logout
-        setError("⚠️ Please verify your email before logging in.");
+      if (user.email !== "admin@gmail.com" && !user.emailVerified) {
+        await signOut(auth);
+        setError("⚠️ Please verify your email first.");
         setShowResend(true);
         return;
       }
 
-      handleClose();
-      navigate("/dashboard");
+      setSuccessOpen(true);
+      setTimeout(() => {
+        setSuccessOpen(false);
+        handleClose();
+        navigate(user.email === "admin@gmail.com" ? "/admin" : "/dashboard");
+      }, 2000);
     } catch (err) {
-      setError(err.message);
+      setError("❌ Invalid credentials.");
     }
   };
 
-  // ✅ Resend verification email
-  const handleResendVerification = async () => {
-    if (auth.currentUser) {
-      try {
-        await sendEmailVerification(auth.currentUser);
-        alert("📩 Verification email sent! Check your inbox.");
-        await signOut(auth);
-        setShowResend(false);
-      } catch (err) {
-        setError("❌ Failed to send verification email: " + err.message);
-      }
-    }
-  };
-
-  // ✅ Google login with linking
   const handleGoogleLogin = async () => {
     try {
       const result = await signInWithPopup(auth, googleProvider);
       const user = result.user;
-
-      // Google accounts are auto-verified, but check linking
-      const methods = await fetchSignInMethodsForEmail(auth, user.email);
-      if (methods.includes("password")) {
-        const password = prompt(
-          "This email is registered with a password. Enter it to link with Google:"
-        );
-        if (password) {
-          const credential = EmailAuthProvider.credential(user.email, password);
-          await linkWithCredential(user, credential);
-          console.log("✅ Google linked with Email/Password!");
-        }
-      }
-
-      handleClose();
-      navigate("/dashboard");
+      setSuccessOpen(true);
+      setTimeout(() => {
+        setSuccessOpen(false);
+        handleClose();
+        navigate(user.email === "admin@gmail.com" ? "/admin" : "/dashboard");
+      }, 2000);
     } catch (err) {
-      setError(err.message);
+      setError("❌ Google login failed.");
     }
   };
 
   return (
     <>
       {open && (
-        <div className="modal-overlay">
-          <div className="modal-content">
-            <button className="close-btn" onClick={handleClose}>
-              ✖
-            </button>
-
-            <div className="modal-main">
-              <div className="modal-header">
-                <h2>Welcome Back 👋</h2>
-                <p>Login to continue your journey with WasteWise.</p>
+        <div className="modal show d-block" tabIndex="-1" role="dialog">
+          <div className="modal-dialog modal-dialog-centered" role="document">
+            <div className="modal-content shadow-lg">
+              {/* Header */}
+              <div className="modal-header text-white">
+                <h5 className="modal-title text-center">Welcome Back 👋</h5>
+                <button type="button" className="btn-close" onClick={handleClose}></button>
               </div>
 
-              <form className="login-form" onSubmit={handleLogin}>
-                <label>Email</label>
-                <input
-                  type="email"
-                  placeholder="Your email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                />
+              {/* Body */}
+              <div className="modal-body">
+                <p className="text-muted">Login to continue your journey with WasteWise.</p>
 
-                <label>Password</label>
-                <input
-                  type="password"
-                  placeholder="Your password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                />
+                {error && <div className="alert alert-danger">{error}</div>}
 
-                {error && <p className="error-text">{error}</p>}
+                <form onSubmit={handleLogin} className="text-start">
+                  {/* Email */}
+                  <div className="mb-3 text-start">
+                    <label className="form-label fw-semibold">Email</label>
+                    <input
+                      type="email"
+                      className="form-control"
+                      placeholder="Enter your email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      required
+                    />
+                  </div>
 
-                {showResend && (
+                  {/* Password */}
+                  <div className="mb-3 text-start">
+                    <label className="form-label fw-semibold">Password</label>
+                    <div className="input-group">
+                      <input
+                        type={showPassword ? "text" : "password"}
+                        className="form-control"
+                        placeholder="Enter your password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        required
+                      />
+                      <button
+                        type="button"
+                        className="btn btn-outline-secondary"
+                        onClick={() => setShowPassword(!showPassword)}
+                      >
+                        {showPassword ? "Hide" : "Show"}
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Forgot Password */}
+                  <div className="mb-3">
+                    <button
+                      type="button"
+                      className="btn btn-link p-0"
+                      onClick={() => setShowForgot(true)}
+                    >
+                      Forgot your password?
+                    </button>
+                  </div>
+
+                  {/* Buttons */}
+                  <button type="submit" className="btn btn-success w-100 mb-2">
+                    Log In
+                  </button>
+
                   <button
                     type="button"
-                    className="resend-btn"
-                    onClick={handleResendVerification}
+                    className="btn btn-outline-danger w-100"
+                    onClick={handleGoogleLogin}
                   >
-                    Resend Verification Email
+                    Sign in with Google
                   </button>
-                )}
+                </form>
+              </div>
 
-                <button
-                  type="button"
-                  className="forgot"
-                  onClick={() => setShowForgot(true)}
-                >
-                  Forgot your password?
-                </button>
-
-                <button type="submit" className="login-btn">
-                  Log In
-                </button>
-
-                <button onClick={handleGoogleLogin} className="google-btn">
-                  Sign in with Google
-                </button>
-
-              </form>
-
-              <div className="extra-links">
-                <p className="signup-text">
-                  Don't have an account? <a href="/signup">Sign up</a>
+              {/* Footer */}
+              <div className="modal-footer justify-content-center">
+                <p className="mb-0">
+                  Don’t have an account?{" "}
+                  <a href="/signup" className="text-success fw-semibold">
+                    Sign Up
+                  </a>
                 </p>
               </div>
             </div>
@@ -165,6 +159,12 @@ function LoginModal({ open, handleClose }) {
       <ForgotPasswordModal
         open={showForgot}
         handleClose={() => setShowForgot(false)}
+      />
+
+      <SuccessPopup
+        open={successOpen}
+        message="✅ Logged in successfully!"
+        handleClose={() => setSuccessOpen(false)}
       />
     </>
   );

@@ -30,7 +30,7 @@ body {
 }
 
 /* Navbar */
-.navbar {
+.navbar1 {
   background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(10px);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
@@ -39,7 +39,7 @@ body {
   z-index: 40;
 }
 
-.nav-content {
+.nav-content1 {
   max-width: 1200px;
   margin: 0 auto;
   padding: 0 2%;
@@ -49,13 +49,13 @@ body {
   height: 4rem;
 }
 
-.nav-brand {
+.nav-brand1 {
   display: flex;
   align-items: center;
   gap: 0.5rem;
 }
 
-.brand-icon {
+.brand-icon1 {
   background: #10b981;
   padding: 0.5rem;
   border-radius: 0.5rem;
@@ -64,7 +64,7 @@ body {
   justify-content: center;
 }
 
-.brand-icon .icon {
+.brand-icon1 .icon {
   color: white;
 }
 

@@ -1,0 +1,86 @@
+.userbins-container {
+  display: flex;
+  min-height: 100vh;
+  background: #f9fafb;
+}
+
+.userbins-main {
+  flex: 1;
+  padding: 24px;
+  margin-left: 280px; /* sidebar width */
+}
+
+/* Header */
+.header-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.header-section h1 {
+  font-size: 24px;
+  font-weight: 700;
+  color: #111827;
+}
+
+.search-bar {
+  padding: 10px 14px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 14px;
+  width: 260px;
+}
+
+/* Bins List */
+.bins-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+.bin-card {
+  background: white;
+  border-radius: 12px;
+  padding: 18px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  transition: 0.2s;
+}
+
+.bin-card:hover {
+  transform: scale(1.02);
+}
+
+.bin-details h3 {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 6px;
+  color: #1f2937;
+}
+
+.bin-details .location {
+  font-size: 14px;
+  color: #4b5563;
+  margin-bottom: 6px;
+}
+
+.status {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+.status.full { color: #dc2626; }   /* red */
+.status.available { color: #16a34a; } /* green */
+
+.last-emptied {
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.empty-state {
+  text-align: center;
+  color: #6b7280;
+  margin-top: 30px;
+  font-size: 14px;
+}

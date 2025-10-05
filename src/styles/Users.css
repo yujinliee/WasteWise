@@ -1,0 +1,102 @@
+.users-dashboard {
+  display: flex;
+  min-height: 100vh;
+  background: #f8fafc;
+}
+
+/* Sidebar stays fixed width */
+.users-sidebar {
+  width: 260px;
+  background: #d1e7e0;
+  min-height: 100vh;
+  flex-shrink: 0; /* sidebar won't shrink */
+}
+
+/* Main content takes the rest of the screen */
+.users-main {
+  flex: 1;
+  padding: 24px;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  overflow-x: auto; /* prevents content overflow */
+}
+
+/* Users section card */
+.users-container {
+  padding: 24px;
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+  margin: 20px auto;
+  max-width: 1100px; /* keeps it centered & not too wide */
+  flex: 1;
+}
+
+/* Page title */
+.users-container h2 {
+  margin-bottom: 20px;
+  font-size: 24px;
+  font-weight: 700;
+  color: #1e293b;
+  border-left: 4px solid #2563eb;
+  padding-left: 10px;
+}
+
+/* Table */
+.users-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #fff;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+}
+
+.users-table thead {
+  background: #2563eb; /* blue header */
+  color: white;
+  text-align: left;
+}
+
+.users-table th,
+.users-table td {
+  padding: 14px 18px;
+  font-size: 14px;
+  text-align: left;
+}
+
+.users-table tbody tr {
+  border-bottom: 1px solid #e5e7eb;
+  transition: background 0.2s ease;
+}
+
+.users-table tbody tr:hover {
+  background: #f9fafb; /* subtle hover */
+}
+
+/* Delete button */
+.delete-btn {
+  background: #ef4444;
+  color: white;
+  padding: 8px 14px;
+  border: none;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.1s ease;
+}
+
+.delete-btn:hover {
+  background: #dc2626;
+  transform: scale(1.05);
+}
+
+/* Empty state */
+.users-container p {
+  font-size: 15px;
+  color: #6b7280;
+  margin-top: 15px;
+  text-align: center;
+}

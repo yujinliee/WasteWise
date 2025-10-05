@@ -1,0 +1,172 @@
+.adminbins-container {
+  display: flex;
+}
+
+.adminbins-main {
+  flex: 1;
+  margin-left: 280px; /* match sidebar width */
+  padding: 30px;
+  background: #f4f6f9;
+  min-height: 100vh;
+}
+
+.header-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 25px;
+}
+
+.header-section h1 {
+  font-size: 1.8rem;
+  color: #333;
+}
+
+.add-btn {
+  background: #4d6763;
+  border: none;
+  padding: 10px 18px;
+  color: white;
+  font-weight: 500;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+.add-btn:hover {
+  background: #3b514e;
+}
+
+/* Table Styles */
+.bins-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+}
+
+.bins-table th, .bins-table td {
+  padding: 14px 16px;
+  text-align: left;
+  font-size: 0.95rem;
+  color: #444;
+}
+
+.bins-table th {
+  background: #e9ecef;
+  font-weight: 600;
+}
+
+.bins-table tr:nth-child(even) {
+  background: #f9f9f9;
+}
+
+.status-badge {
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+.status-badge.full {
+  background: #ff4d4f;
+  color: white;
+}
+.status-badge.not-full {
+  background: #4caf50;
+  color: white;
+}
+
+.delete-btn {
+  background: #dc3545;
+  border: none;
+  padding: 6px 12px;
+  color: white;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+.delete-btn:hover {
+  background: #b52b37;
+}
+
+/* Modal Styles */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+}
+
+.modal-content {
+  background: white;
+  padding: 25px;
+  border-radius: 12px;
+  width: 400px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+
+.modal-content h2 {
+  margin-bottom: 20px;
+  font-size: 1.4rem;
+  color: #333;
+}
+
+.modal-form input {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 15px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.cancel-btn {
+  background: #aaa;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 6px;
+  color: white;
+  cursor: pointer;
+}
+.cancel-btn:hover {
+  background: #888;
+}
+
+.save-btn {
+  background: #4d6763;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  color: white;
+  font-weight: 500;
+  cursor: pointer;
+}
+.save-btn:hover {
+  background: #3b514e;
+}
+
+/* Reuse modal styles */
+.modal-content p {
+  font-size: 1rem;
+  margin: 10px 0 20px;
+  color: #555;
+}
+
+.modal-actions .delete-btn {
+  background: #dc3545;
+}
+.modal-actions .delete-btn:hover {
+  background: #b52b37;
+}

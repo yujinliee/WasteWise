@@ -2,19 +2,43 @@ import React, { useEffect, useState } from 'react';
 import "../styles/UserDashboard.css";
 import NavbarUser from "../Components/NavbarUser";
 import { auth } from "../Components/firebase";
-import { signOut, onAuthStateChanged } from "firebase/auth";
+import { signOut, onAuthStateChanged, updateProfile } from "firebase/auth";
+import EditProfileModal from "../Components/EditProfileModal";
 
 const UserDashboard = () => {
   const [currentDate] = useState(new Date());
   const [user, setUser] = useState(null);
+  const [showEditModal, setShowEditModal] = useState(false);
 
   useEffect(() => {
-      const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-        setUser(currentUser);
-      });
-      return () => unsubscribe();
-    }, []);
-  
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
+    });
+    return () => unsubscribe();
+  }, []);
+
+  const handleSaveProfile = async (updatedData) => {
+    if (auth.currentUser) {
+      try {
+        // Update Firebase Auth profile
+        await updateProfile(auth.currentUser, {
+          displayName: updatedData.displayName,
+        });
+
+        // Update local state
+        setUser({
+          ...auth.currentUser,
+          displayName: updatedData.displayName,
+          campus: updatedData.campus, // not stored in Auth, but we keep in state
+        });
+
+        setShowEditModal(false);
+      } catch (error) {
+        console.error("Error updating profile:", error);
+      }
+    }
+  };
+
   // Sample data
   const binStatus = [
     { id: 1, location: 'Main Building A', status: 'Available', fill: 20, distance: '50m' },
@@ -56,20 +80,20 @@ const UserDashboard = () => {
     const year = currentDate.getFullYear();
     const month = currentDate.getMonth();
     const today = new Date().getDate();
-    
+
     const firstDay = new Date(year, month, 1).getDay();
     const daysInMonth = new Date(year, month + 1, 0).getDate();
-    
+
     const days = [];
-    const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
-      'July', 'August', 'September', 'October', 'November', 'December'];
-    
-    // Empty cells for days before month starts
+    const monthNames = [
+      'January', 'February', 'March', 'April', 'May', 'June',
+      'July', 'August', 'September', 'October', 'November', 'December'
+    ];
+
     for (let i = 0; i < firstDay; i++) {
       days.push(<div key={`empty-${i}`} className="calendar-day"></div>);
     }
-    
-    // Days of the month
+
     for (let day = 1; day <= daysInMonth; day++) {
       days.push(
         <div key={day} className={`calendar-day ${day === today ? 'today' : ''}`}>
@@ -77,7 +101,7 @@ const UserDashboard = () => {
         </div>
       );
     }
-    
+
     return (
       <div className="calendar-widget">
         <div className="calendar-header">
@@ -196,7 +220,7 @@ const UserDashboard = () => {
               </div>
             </div>
 
-            {/* Profile */}
+            {/* Profile Widget */}
             <div className="widget">
               <div className="widget-header">
                 <h2>Profile</h2> 👤
@@ -204,22 +228,36 @@ const UserDashboard = () => {
               <div className="profile-section">
                 <div className="profile-detail">
                   <span className="label">Email:</span>
-                  <span className="value">eugene@gmail.com</span>
+                  <span className="value">{user?.email}</span>
                 </div>
                 <div className="profile-detail">
-                  <span className="label">Campus:</span>
-                  <span className="value">Main Campus</span>
+                  <span className="label">Name:</span>
+                  <span className="value">{user?.displayName || "N/A"}</span>
                 </div>
                 <div className="profile-detail">
-                  <span className="label">Member since:</span>
-                  <span className="value">September 2025</span>
+                  <span className="label">Floor:</span>
+                  <span className="value">{user?.campus || "Not set"}</span>
                 </div>
-                <button className="profile-edit-btn">Edit Profile</button>
+                <button
+                  className="profile-edit-btn"
+                  onClick={() => setShowEditModal(true)}
+                >
+                  Edit Profile
+                </button>
               </div>
             </div>
           </div>
         </div>
       </div>
+
+      {/* Edit Profile Modal */}
+      {showEditModal && (
+        <EditProfileModal
+          user={user}
+          onClose={() => setShowEditModal(false)}
+          onSave={handleSaveProfile}
+        />
+      )}
     </div>
   );
 };

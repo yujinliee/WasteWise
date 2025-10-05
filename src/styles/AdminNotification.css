@@ -1,0 +1,224 @@
+.adminnotifications-container {
+  display: flex;
+  min-height: 100vh;
+  background: #f9fafb;
+}
+
+.adminnotifications-main {
+  flex: 1;
+  padding: 24px;
+  margin-left: 280px; /* sidebar width */
+}
+
+/* Header */
+.header-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.header-section h1 {
+  font-size: 24px;
+  font-weight: 700;
+  color: #111827;
+}
+
+.add-btn {
+  background: #2563eb;
+  color: white;
+  border: none;
+  padding: 10px 18px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+}
+.add-btn:hover {
+  background: #1e40af;
+}
+
+/* Search */
+.search-section {
+  margin-bottom: 20px;
+}
+.search-section input {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 14px;
+}
+
+/* Notifications List */
+.notifications-list {
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+  gap: 14px;
+}
+
+.notif-card {
+  background: white;
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  transition: 0.2s;
+}
+.notif-card:hover {
+  transform: scale(1.01);
+}
+
+.notif-details h3 {
+  font-size: 18px;
+  font-weight: 600;
+  color: #1f2937;
+  margin-bottom: 6px;
+}
+
+.notif-details p {
+  font-size: 14px;
+  color: #4b5563;
+}
+
+.notif-date {
+  font-size: 12px;
+  color: #6b7280;
+  margin-top: 6px;
+  display: block;
+}
+
+.category-badge {
+  display: inline-block;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 8px;
+  border-radius: 6px;
+  margin-bottom: 6px;
+}
+.category-badge.system { background: #dbeafe; color: #1e40af; }
+.category-badge.policy { background: #fef3c7; color: #92400e; }
+.category-badge.event { background: #dcfce7; color: #166534; }
+.category-badge.urgent { background: #fee2e2; color: #991b1b; }
+
+.notif-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.pin-btn {
+  background: #f59e0b;
+  color: white;
+  padding: 6px 12px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+}
+.pin-btn:hover { background: #b45309; }
+
+.delete-btn {
+  background: #dc2626;
+  color: white;
+  padding: 6px 12px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+}
+.delete-btn:hover { background: #b91c1c; }
+
+/* Empty state */
+.empty-state {
+  text-align: center;
+  font-size: 14px;
+  color: #6b7280;
+  margin-top: 30px;
+}
+
+/* Modal */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+.modal-content {
+  background: white;
+  padding: 24px;
+  border-radius: 12px;
+  width: 420px;
+}
+.modal-content h2 {
+  margin-bottom: 16px;
+  font-size: 20px;
+  font-weight: 600;
+}
+.modal-form input,
+.modal-form textarea,
+.modal-form select {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 14px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 14px;
+}
+.modal-form textarea { min-height: 80px; resize: vertical; }
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+.cancel-btn {
+  background: #9ca3af;
+  color: white;
+  padding: 8px 14px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.cancel-btn:hover { background: #6b7280; }
+.save-btn {
+  background: #2563eb;
+  color: white;
+  padding: 8px 14px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.save-btn:hover { background: #1e40af; }
+
+/* Edit Button */
+.edit-btn {
+  background-color: #007bff; /* Blue theme */
+  color: white;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  margin-right: 8px;
+}
+
+.edit-btn:hover {
+  background-color: #0056b3; /* Darker blue */
+  transform: translateY(-1px);
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
+}
+
+.edit-btn:active {
+  background-color: #00408d; /* Pressed state */
+  transform: translateY(0);
+  box-shadow: none;
+}
+

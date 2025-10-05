@@ -1,6 +1,4 @@
-// src/pages/SignUpModal.js
 import React, { useState, useEffect } from "react";
-import "../styles/Signup.css";
 import {
   createUserWithEmailAndPassword,
   updateProfile,
@@ -8,7 +6,7 @@ import {
   signOut,
 } from "firebase/auth";
 import { auth } from "../Components/firebase";
-import SuccessPopup from "../Components/SuccessPopup"; // new component
+import SuccessPopup from "../Components/SuccessPopup";
 
 function SignUpModal({ open, handleClose }) {
   const [showPassword, setShowPassword] = useState(false);
@@ -33,14 +31,12 @@ function SignUpModal({ open, handleClose }) {
     setFormData({ ...formData, [name]: type === "checkbox" ? checked : value });
   };
 
-  // If you want: auto-close success popup then close modal after X sec
   useEffect(() => {
     let t;
     if (successOpen) {
-      // optional: auto-close after 6 seconds (comment out if you prefer manual close)
       t = setTimeout(() => {
         setSuccessOpen(false);
-        handleClose(); // now close the signup modal
+        handleClose();
       }, 6000);
     }
     return () => clearTimeout(t);
@@ -53,12 +49,17 @@ function SignUpModal({ open, handleClose }) {
     if (!formData.firstName) newErrors.firstName = "First name is required";
     if (!formData.lastName) newErrors.lastName = "Last name is required";
     if (!formData.email) newErrors.email = "Email is required";
-    else if (!validateEmail(formData.email)) newErrors.email = "Please enter a valid email address";
+    else if (!validateEmail(formData.email))
+      newErrors.email = "Please enter a valid email address";
     if (!formData.password) newErrors.password = "Password is required";
-    else if (formData.password.length < 6) newErrors.password = "Password must be at least 6 characters";
-    if (!formData.confirmPassword) newErrors.confirmPassword = "Please confirm your password";
-    else if (formData.password !== formData.confirmPassword) newErrors.confirmPassword = "Passwords do not match";
-    if (!formData.agreeToTerms) newErrors.agreeToTerms = "You must agree to the terms and conditions";
+    else if (formData.password.length < 6)
+      newErrors.password = "Password must be at least 6 characters";
+    if (!formData.confirmPassword)
+      newErrors.confirmPassword = "Please confirm your password";
+    else if (formData.password !== formData.confirmPassword)
+      newErrors.confirmPassword = "Passwords do not match";
+    if (!formData.agreeToTerms)
+      newErrors.agreeToTerms = "You must agree to the terms and conditions";
 
     setErrors(newErrors);
     if (Object.keys(newErrors).length > 0) return;
@@ -74,123 +75,182 @@ function SignUpModal({ open, handleClose }) {
         displayName: `${formData.firstName} ${formData.lastName}`,
       });
 
-      // send verification email
       await sendEmailVerification(userCredential.user);
-
-      // sign them out so they must verify first
       await signOut(auth);
 
-      // clear form (optional)
       setFormData(initialForm);
-
-      // SHOW success popup (do NOT call handleClose here)
       setSuccessOpen(true);
     } catch (error) {
       alert("❌ " + error.message);
     }
   };
 
-  // If parent closed modal, don't render
   if (!open) return null;
 
   return (
     <>
-      <div className="modal-overlay">
-        <div className="modal-content">
-          <span className="close-btn" onClick={handleClose}>
-            &times;
-          </span>
-
-          <h2>Create Account</h2>
-
-          <form className="signup-form" onSubmit={handleSubmit}>
-            <div className="name-fields">
-              <input
-                type="text"
-                name="firstName"
-                placeholder="First name"
-                value={formData.firstName}
-                onChange={handleChange}
-                required
-              />
-              {errors.firstName && <p className="error-message">{errors.firstName}</p>}
-
-              <input
-                type="text"
-                name="lastName"
-                placeholder="Last name"
-                value={formData.lastName}
-                onChange={handleChange}
-                required
-              />
-              {errors.lastName && <p className="error-message">{errors.lastName}</p>}
+      <div className="modal show d-block" tabIndex="-1" role="dialog">
+        <div className="modal-dialog modal-dialog-centered" role="document">
+          <div className="modal-content shadow-lg">
+            {/* Header */}
+            <div className="modal-header text-white">
+              <h5 className="modal-title">Create Account</h5>
+              <button
+                type="button"
+                className="btn-close"
+                onClick={handleClose}
+              ></button>
             </div>
 
-            <input
-              type="email"
-              name="email"
-              placeholder="Email address"
-              value={formData.email}
-              onChange={handleChange}
-              required
-            />
-            {errors.email && <p className="error-message">{errors.email}</p>}
+            {/* Body */}
+            <div className="modal-body">
+              <form onSubmit={handleSubmit} className="text-start">
+                {/* Name fields */}
+                <div className="row mb-3">
+                  <div className="col">
+                    <label className="form-label">First Name</label>
+                    <input
+                      type="text"
+                      className="form-control"
+                      name="firstName"
+                      value={formData.firstName}
+                      onChange={handleChange}
+                      required
+                    />
+                    {errors.firstName && (
+                      <div className="text-danger small">{errors.firstName}</div>
+                    )}
+                  </div>
+                  <div className="col">
+                    <label className="form-label">Last Name</label>
+                    <input
+                      type="text"
+                      className="form-control"
+                      name="lastName"
+                      value={formData.lastName}
+                      onChange={handleChange}
+                      required
+                    />
+                    {errors.lastName && (
+                      <div className="text-danger small">{errors.lastName}</div>
+                    )}
+                  </div>
+                </div>
 
-            <div className="password-field">
-              <input
-                type={showPassword ? "text" : "password"}
-                name="password"
-                placeholder="Password"
-                value={formData.password}
-                onChange={handleChange}
-                required
-              />
-              <span onClick={() => setShowPassword(!showPassword)}>
-                {showPassword ? "Hide" : "Show"}
-              </span>
+                {/* Email */}
+                <div className="mb-3">
+                  <label className="form-label">Email Address</label>
+                  <input
+                    type="email"
+                    className="form-control"
+                    name="email"
+                    value={formData.email}
+                    onChange={handleChange}
+                    required
+                  />
+                  {errors.email && (
+                    <div className="text-danger small">{errors.email}</div>
+                  )}
+                </div>
+
+                {/* Password */}
+                <div className="mb-3">
+                  <label className="form-label">Password</label>
+                  <div className="input-group">
+                    <input
+                      type={showPassword ? "text" : "password"}
+                      className="form-control"
+                      name="password"
+                      value={formData.password}
+                      onChange={handleChange}
+                      required
+                    />
+                    <button
+                      type="button"
+                      className="btn btn-outline-secondary"
+                      onClick={() => setShowPassword(!showPassword)}
+                    >
+                      {showPassword ? "Hide" : "Show"}
+                    </button>
+                  </div>
+                  {errors.password && (
+                    <div className="text-danger small">{errors.password}</div>
+                  )}
+                </div>
+
+                {/* Confirm Password */}
+                <div className="mb-3">
+                  <label className="form-label">Confirm Password</label>
+                  <div className="input-group">
+                    <input
+                      type={showConfirmPassword ? "text" : "password"}
+                      className="form-control"
+                      name="confirmPassword"
+                      value={formData.confirmPassword}
+                      onChange={handleChange}
+                      required
+                    />
+                    <button
+                      type="button"
+                      className="btn btn-outline-secondary"
+                      onClick={() =>
+                        setShowConfirmPassword(!showConfirmPassword)
+                      }
+                    >
+                      {showConfirmPassword ? "Hide" : "Show"}
+                    </button>
+                  </div>
+                  {errors.confirmPassword && (
+                    <div className="text-danger small">
+                      {errors.confirmPassword}
+                    </div>
+                  )}
+                </div>
+
+                {/* Terms */}
+                <div className="form-check mb-3">
+                  <input
+                    className="form-check-input"
+                    type="checkbox"
+                    id="agreeToTerms"
+                    name="agreeToTerms"
+                    checked={formData.agreeToTerms}
+                    onChange={handleChange}
+                  />
+                  <label className="form-check-label" htmlFor="agreeToTerms">
+                    I agree to the{" "}
+                    <a href="#" className="text-primary">
+                      Terms of Service
+                    </a>{" "}
+                    and{" "}
+                    <a href="#" className="text-primary">
+                      Privacy Policy
+                    </a>
+                  </label>
+                  {errors.agreeToTerms && (
+                    <div className="text-danger small">
+                      {errors.agreeToTerms}
+                    </div>
+                  )}
+                </div>
+
+                {/* Submit */}
+                <button type="submit" className="btn btn-primary w-100 mb-2">
+                  Sign Up
+                </button>
+              </form>
             </div>
-            {errors.password && <p className="error-message">{errors.password}</p>}
 
-            <div className="password-field">
-              <input
-                type={showConfirmPassword ? "text" : "password"}
-                name="confirmPassword"
-                placeholder="Confirm Password"
-                value={formData.confirmPassword}
-                onChange={handleChange}
-                required
-              />
-              <span onClick={() => setShowConfirmPassword(!showConfirmPassword)}>
-                {showConfirmPassword ? "Hide" : "Show"}
-              </span>
+            {/* Footer */}
+            <div className="modal-footer justify-content-center">
+              <p className="mb-0">
+                Already have an account?{" "}
+                <a href="#" className="text-primary fw-semibold" onClick={handleClose}>
+                  Log In
+                </a>
+              </p>
             </div>
-            {errors.confirmPassword && <p className="error-message">{errors.confirmPassword}</p>}
-
-            <div className="terms-container">
-              <input
-                type="checkbox"
-                id="agreeToTerms"
-                name="agreeToTerms"
-                checked={formData.agreeToTerms}
-                onChange={handleChange}
-              />
-              <label htmlFor="agreeToTerms">
-                I agree to the <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>
-              </label>
-            </div>
-            {errors.agreeToTerms && <p className="error-message">{errors.agreeToTerms}</p>}
-
-            <button type="submit" className="signup-btn">
-              Sign up
-            </button>
-
-            <p className="login-link">
-              Already have an account?{" "}
-              <a href="#" onClick={handleClose}>
-                Log in
-              </a>
-            </p>
-          </form>
+          </div>
         </div>
       </div>
 
@@ -199,7 +259,6 @@ function SignUpModal({ open, handleClose }) {
         message="✅ Account created successfully! Please check your email for verification."
         handleClose={() => {
           setSuccessOpen(false);
-          // then close the signup modal
           handleClose();
         }}
       />
