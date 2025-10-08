@@ -2,7 +2,8 @@
 import { initializeApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
 import { getAnalytics } from "firebase/analytics";
-import { getAuth, GoogleAuthProvider } from "firebase/auth"; // ✅ only once
+import { getAuth, GoogleAuthProvider } from "firebase/auth"; 
+import { getStorage } from "firebase/storage";
 
 const firebaseConfig = {
   apiKey: "AIzaSyBffyHahsNJzjBWHl1hooyGIR6FiezHzJ8",
@@ -18,7 +19,8 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const analytics = getAnalytics(app);
-const auth = getAuth(app); // ✅ only one getAuth
-const googleProvider = new GoogleAuthProvider(); // ✅ google provider
+const auth = getAuth(app); 
+const storage = getStorage(app);
+const googleProvider = new GoogleAuthProvider(); 
 
-export { auth, db, analytics, googleProvider };
+export { auth, db, storage, analytics, googleProvider };

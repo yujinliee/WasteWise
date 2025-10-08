@@ -15,95 +15,100 @@ import UserBins from "./pages/UserBins";
 import UserNotifications from "./pages/UserNotifications";
 import UserSettings from "./pages/UserSettings";
 
+// ✅ Import UserProvider
+import { UserProvider } from "./Components/UserContext";
+
 function App() {
   return (
-    <div className="App">
-      <Router>
-        <Routes>
-          {/* Public Routes */}
-          <Route path="/" element={<LandingPage />} />
-          <Route path="/signup" element={<SignUp />} />
-          <Route path="/login" element={<Login />} />
+    // ✅ Wrap your entire app with UserProvider
+    <UserProvider>
+      <div className="App">
+        <Router>
+          <Routes>
+            {/* Public Routes */}
+            <Route path="/" element={<LandingPage />} />
+            <Route path="/signup" element={<SignUp />} />
+            <Route path="/login" element={<Login />} />
 
-          {/* User Routes */} 
-          <Route 
-            path="/dashboard"
-            element={
-              <UserRoute>
-                <Dashboard />
-              </UserRoute>
-            }
-          />
-          <Route 
-            path="/bins"
-            element={
-              <UserRoute>
-                <UserBins />
-              </UserRoute>
-            }
-          />
-          <Route 
-            path="/notifications"
-            element={
-              <UserRoute>
-                <UserNotifications />
-              </UserRoute>
-            }
-          />
-          <Route 
-            path="/settings"
-            element={
-              <UserRoute>
-                <UserSettings />
-              </UserRoute>
-            }
-          />
+            {/* User Routes */}
+            <Route 
+              path="/dashboard"
+              element={
+                <UserRoute>
+                  <Dashboard />
+                </UserRoute>
+              }
+            />
+            <Route 
+              path="/bins"
+              element={
+                <UserRoute>
+                  <UserBins />
+                </UserRoute>
+              }
+            />
+            <Route 
+              path="/notifications"
+              element={
+                <UserRoute>
+                  <UserNotifications />
+                </UserRoute>
+              }
+            />
+            <Route 
+              path="/settings"
+              element={
+                <UserRoute>
+                  <UserSettings />
+                </UserRoute>
+              }
+            />
 
-
-          {/* Admin Routes */}
-          <Route 
-            path="/admin" 
-            element={
-              <AdminRoute>
-                <AdminDashboard />
-              </AdminRoute>
-            } 
-          />
-          <Route 
-            path="/admin/users" 
-            element={
-              <AdminRoute>
-                <Users />
-              </AdminRoute>
-            } 
-          />
-          <Route 
-            path="/admin/bins" 
-            element={
-              <AdminRoute>
-                <AdminBins />
-              </AdminRoute>
-            } 
-          />
-          <Route 
-            path="/admin/notifications" 
-            element={
-              <AdminRoute>
-                <AdminNotifications />
-              </AdminRoute>
-            } 
-          />
-          <Route 
-            path="/admin/settings" 
-            element={
-              <AdminRoute>
-                <AdminSettings />
-              </AdminRoute>
-            } 
-          />
-        </Routes>
-      </Router>
-    </div>
+            {/* Admin Routes */}
+            <Route 
+              path="/admin" 
+              element={
+                <AdminRoute>
+                  <AdminDashboard />
+                </AdminRoute>
+              } 
+            />
+            <Route 
+              path="/admin/users" 
+              element={
+                <AdminRoute>
+                  <Users />
+                </AdminRoute>
+              } 
+            />
+            <Route 
+              path="/admin/bins" 
+              element={
+                <AdminRoute>
+                  <AdminBins />
+                </AdminRoute>
+              } 
+            />
+            <Route 
+              path="/admin/notifications" 
+              element={
+                <AdminRoute>
+                  <AdminNotifications />
+                </AdminRoute>
+              } 
+            />
+            <Route 
+              path="/admin/settings" 
+              element={
+                <AdminRoute>
+                  <AdminSettings />
+                </AdminRoute>
+              } 
+            />
+          </Routes>
+        </Router>
+      </div>
+    </UserProvider>
   );
 }
 

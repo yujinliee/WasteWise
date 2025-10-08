@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import "../styles/UserDashboard.css";
 import NavbarUser from "../Components/NavbarUser";
 import { auth } from "../Components/firebase";
 import { signOut, onAuthStateChanged, updateProfile } from "firebase/auth";
@@ -20,16 +19,14 @@ const UserDashboard = () => {
   const handleSaveProfile = async (updatedData) => {
     if (auth.currentUser) {
       try {
-        // Update Firebase Auth profile
         await updateProfile(auth.currentUser, {
           displayName: updatedData.displayName,
         });
 
-        // Update local state
         setUser({
           ...auth.currentUser,
           displayName: updatedData.displayName,
-          campus: updatedData.campus, // not stored in Auth, but we keep in state
+          campus: updatedData.campus,
         });
 
         setShowEditModal(false);
@@ -39,7 +36,6 @@ const UserDashboard = () => {
     }
   };
 
-  // Sample data
   const binStatus = [
     { id: 1, location: 'Main Building A', status: 'Available', fill: 20, distance: '50m' },
     { id: 2, location: 'Library Entrance', status: 'Half Full', fill: 65, distance: '120m' },
@@ -47,9 +43,9 @@ const UserDashboard = () => {
   ];
 
   const notifications = [
-    { id: 1, type: 'collection', message: 'Waste collection scheduled for tomorrow at 8:00 AM', time: '2 hours ago' },
-    { id: 2, type: 'reminder', message: 'Remember to separate recyclables from general waste', time: '1 day ago' },
-    { id: 3, type: 'alert', message: 'Bin near Library is almost full', time: '2 days ago' }
+    { id: 1, message: 'Waste collection scheduled for tomorrow at 8:00 AM', time: '2 hours ago' },
+    { id: 2, message: 'Remember to separate recyclables from general waste', time: '1 day ago' },
+    { id: 3, message: 'Bin near Library is almost full', time: '2 days ago' }
   ];
 
   const ecoTips = [
@@ -67,10 +63,10 @@ const UserDashboard = () => {
 
   const getStatusColor = (status) => {
     switch (status) {
-      case 'Available': return 'bg-green-100 text-green-800';
-      case 'Half Full': return 'bg-yellow-100 text-yellow-800';
-      case 'Nearly Full': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'Available': return 'bg-success text-white';
+      case 'Half Full': return 'bg-warning text-dark';
+      case 'Nearly Full': return 'bg-danger text-white';
+      default: return 'bg-secondary text-white';
     }
   };
 
@@ -80,10 +76,8 @@ const UserDashboard = () => {
     const year = currentDate.getFullYear();
     const month = currentDate.getMonth();
     const today = new Date().getDate();
-
     const firstDay = new Date(year, month, 1).getDay();
     const daysInMonth = new Date(year, month + 1, 0).getDate();
-
     const days = [];
     const monthNames = [
       'January', 'February', 'March', 'April', 'May', 'June',
@@ -91,32 +85,30 @@ const UserDashboard = () => {
     ];
 
     for (let i = 0; i < firstDay; i++) {
-      days.push(<div key={`empty-${i}`} className="calendar-day"></div>);
+      days.push(<div key={`empty-${i}`} className="border p-2"></div>);
     }
 
     for (let day = 1; day <= daysInMonth; day++) {
       days.push(
-        <div key={day} className={`calendar-day ${day === today ? 'today' : ''}`}>
+        <div key={day} className={`border p-2 text-center ${day === today ? 'bg-success text-white fw-bold' : ''}`}>
           {day}
         </div>
       );
     }
 
     return (
-      <div className="calendar-widget">
-        <div className="calendar-header">
-          <h3>{monthNames[month]} {year}</h3>
-          <div className="calendar-nav">
-            <button>‹</button>
-            <button>›</button>
+      <div>
+        <div className="d-flex justify-content-between align-items-center mb-2">
+          <h5 className="mb-0">{monthNames[month]} {year}</h5>
+          <div>
+            <button className="btn btn-sm btn-outline-secondary me-1">‹</button>
+            <button className="btn btn-sm btn-outline-secondary">›</button>
           </div>
         </div>
-        <div className="calendar-weekdays">
+        <div className="d-grid" style={{ gridTemplateColumns: 'repeat(7, 1fr)' }}>
           {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map(day => (
-            <div key={day} className="weekday">{day}</div>
+            <div key={day} className="fw-bold text-center border py-2">{day}</div>
           ))}
-        </div>
-        <div className="calendar-grid">
           {days}
         </div>
       </div>
@@ -124,41 +116,33 @@ const UserDashboard = () => {
   };
 
   return (
-    <div className="dashboard-container">
+    <div className="d-flex vh-100">
       <NavbarUser />
 
-      {/* Main Content */}
-      <div className="main-content">
-        <div className="welcome-section">
-          <h1>Welcome back, {user?.displayName || "User"}! 👋</h1>
-        </div>
+      <div className="flex-grow-1 p-4 bg-light overflow-auto">
+        <h2 className="fw-bold mb-4 text-start">Welcome back, {user?.displayName || "User"}! 👋</h2>
 
-        <div className="dashboard-grid">
+        <div className="row g-4">
           {/* Left Column */}
-          <div className="left-column">
+          <div className="col-lg-8">
             {/* Bin Status */}
-            <div className="widget">
-              <div className="widget-header">
-                <h2>Nearby Bins Status</h2> 📍
-              </div>
-              <div className="bin-list">
+            <div className="card mb-4">
+              <div className="card-header fw-bold">📍 Nearby Bins Status</div>
+              <div className="card-body">
                 {binStatus.map(bin => (
-                  <div key={bin.id} className="bin-item">
-                    <div className="bin-info">
-                      <div className="bin-location">{bin.location}</div>
-                      <div className="bin-distance">{bin.distance} away</div>
-                    </div>
-                    <div className="bin-status">
-                      <span className={`status-badge ${getStatusColor(bin.status)}`}>
-                        {bin.status}
-                      </span>
-                      <div className="fill-meter">
-                        <div 
-                          className="fill-bar" 
-                          style={{ width: getFillWidth(bin.fill) }}
-                        ></div>
+                  <div key={bin.id} className="mb-3">
+                    <div className="d-flex justify-content-between align-items-center">
+                      <div>
+                        <div className="fw-semibold">{bin.location}</div>
+                        <small className="text-muted">{bin.distance} away</small>
                       </div>
-                      <span className="fill-text">{bin.fill}%</span>
+                      <div className="text-end">
+                        <span className={`badge ${getStatusColor(bin.status)}`}>{bin.status}</span>
+                        <div className="progress mt-2" style={{ height: "6px" }}>
+                          <div className="progress-bar" style={{ width: getFillWidth(bin.fill) }}></div>
+                        </div>
+                        <small>{bin.fill}% full</small>
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -166,80 +150,67 @@ const UserDashboard = () => {
             </div>
 
             {/* Notifications */}
-            <div className="widget">
-              <div className="widget-header">
-                <h2>Active Notifications</h2> 🔔
-              </div>
-              <div className="notification-list">
-                {notifications.map(notification => (
-                  <div key={notification.id} className="notification-item">
-                    <div className="notification-content">
-                      <p>{notification.message}</p>
-                      <span className="notification-time">{notification.time}</span>
-                    </div>
+            <div className="card mb-4">
+              <div className="card-header fw-bold">🔔 Active Notifications</div>
+              <div className="card-body">
+                {notifications.map(note => (
+                  <div key={note.id} className="mb-2">
+                    <p className="mb-1">{note.message}</p>
+                    <small className="text-muted">{note.time}</small>
                   </div>
                 ))}
               </div>
             </div>
 
             {/* Eco Tips */}
-            <div className="widget">
-              <div className="widget-header">
-                <h2>Eco Tips & Reminders</h2> 💡
-              </div>
-              <div className="tips-list">
-                {ecoTips.map((tip, index) => (
-                  <div key={index} className="tip-item">
-                    <div className="tip-icon">💡</div>
-                    <p>{tip}</p>
-                  </div>
-                ))}
+            <div className="card mb-4">
+              <div className="card-header fw-bold">💡 Eco Tips & Reminders</div>
+              <div className="card-body">
+                <ul className="list-group list-group-flush">
+                  {ecoTips.map((tip, index) => (
+                    <li key={index} className="list-group-item">💡 {tip}</li>
+                  ))}
+                </ul>
               </div>
             </div>
           </div>
 
           {/* Right Column */}
-          <div className="right-column">
-            {renderCalendar()}
+          <div className="col-lg-4">
+            {/* Calendar */}
+            <div className="card mb-4">
+              <div className="card-header fw-bold">📅 Calendar</div>
+              <div className="card-body">{renderCalendar()}</div>
+            </div>
 
             {/* History */}
-            <div className="widget">
-              <div className="widget-header">
-                <h2>Recent Activity</h2> 📊
-              </div>
-              <div className="history-list">
+            <div className="card mb-4">
+              <div className="card-header fw-bold">📊 Recent Activity</div>
+              <div className="card-body">
                 {recentHistory.map((item, index) => (
-                  <div key={index} className="history-item">
-                    <div className="history-date">{item.date}</div>
-                    <div className="history-details">
-                      <div className="history-action">{item.action}</div>
-                      <div className="history-location">{item.location}</div>
-                    </div>
+                  <div key={index} className="mb-2">
+                    <div className="fw-semibold">{item.date}</div>
+                    <small>{item.action} — {item.location}</small>
                   </div>
                 ))}
               </div>
             </div>
 
-            {/* Profile Widget */}
-            <div className="widget">
-              <div className="widget-header">
-                <h2>Profile</h2> 👤
-              </div>
-              <div className="profile-section">
-                <div className="profile-detail">
-                  <span className="label">Email:</span>
-                  <span className="value">{user?.email}</span>
+            {/* Profile */}
+            <div className="card">
+              <div className="card-header fw-bold">👤 Profile</div>
+              <div className="card-body">
+                <div className="mb-2">
+                  <strong>Email:</strong> <span className="text-muted">{user?.email}</span>
                 </div>
-                <div className="profile-detail">
-                  <span className="label">Name:</span>
-                  <span className="value">{user?.displayName || "N/A"}</span>
+                <div className="mb-2">
+                  <strong>Name:</strong> <span className="text-muted">{user?.displayName || "N/A"}</span>
                 </div>
-                <div className="profile-detail">
-                  <span className="label">Floor:</span>
-                  <span className="value">{user?.campus || "Not set"}</span>
+                <div className="mb-3">
+                  <strong>Floor:</strong> <span className="text-muted">{user?.campus || "Not set"}</span>
                 </div>
                 <button
-                  className="profile-edit-btn"
+                  className="btn btn-outline-primary w-100"
                   onClick={() => setShowEditModal(true)}
                 >
                   Edit Profile
