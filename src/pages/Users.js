@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from "react";
 import NavbarAdmin from "../Components/NavbarAdmin";
+import TopNavbarAdmin from "../Components/TopNavbarAdmin";
 import "bootstrap/dist/css/bootstrap.min.css";
+import "bootstrap/dist/js/bootstrap.bundle.min.js";
 
 const Users = () => {
   const [users, setUsers] = useState([]);
@@ -120,219 +122,209 @@ const Users = () => {
   }
 
   return (
-    <div className="d-flex">
+    <div className="d-flex vh-100 bg-light">
+      {/* Sidebar */}
       <NavbarAdmin />
 
-      {/* Main Content */}
-      <div 
-        className="flex-grow-1 p-4 bg-light" 
-        style={{ 
-          marginLeft: "250px",
-          minHeight: "100vh",
-          width: "calc(100% - 250px)"
-        }}
-      >
-        <div className="container-fluid">
-          {/* Header */}
-          <div className="d-flex justify-content-between text-start mb-4">
-            <div>
-              <h2 className="fw-bold text-dark">👥 Users Management</h2>
-              <p className="text-muted mb-0">Manage system users and their permissions</p>
-            </div>
-          </div>
+      {/* Main Section */}
+      <div className="flex-grow-1 d-flex flex-column">
+        {/* Fixed Top Navbar */}
+        <div className="bg-white shadow-sm sticky-top">
+          <TopNavbarAdmin />
+        </div>
 
-          {/* Tabs */}
-          <ul className="nav nav-tabs mb-4">
-            <li className="nav-item">
-              <button
-                className={`nav-link ${activeTab === "active" ? "active" : ""}`}
-                onClick={() => setActiveTab("active")}
-              >
-                <i className="bi bi-people me-2"></i>
-                Active Users
-                <span className="badge bg-primary ms-2">
-                  {users.filter(u => !u.archived).length}
-                </span>
-              </button>
-            </li>
-            <li className="nav-item">
-              <button
-                className={`nav-link ${activeTab === "archived" ? "active" : ""}`}
-                onClick={() => setActiveTab("archived")}
-              >
-                <i className="bi bi-archive me-2"></i>
-                Archived Users
-                <span className="badge bg-secondary ms-2">
-                  {users.filter(u => u.archived).length}
-                </span>
-              </button>
-            </li>
-          </ul>
-
-          {/* Search Bar */}
-          <div className="row mb-4">
-            <div className="col-md-6">
-              <div className="input-group">
-                <span className="input-group-text">
-                  <i className="bi bi-search"></i>
-                </span>
-                <input
-                  type="text"
-                  className="form-control"
-                  placeholder={`Search ${activeTab} users...`}
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                />
+        {/* Grayish Layer */}
+        <div
+          className="flex-grow-1 p-4"
+          style={{
+            backgroundColor: "#f0f2f5",
+            overflow: "hidden",
+          }}
+        >
+          {/* Scrollable White Section */}
+          <div
+            className="bg-white rounded shadow p-4"
+            style={{
+              height: "100%",
+              overflowY: "auto",
+            }}
+          >
+            {/* Header */}
+            <div className="d-flex justify-content-between align-items-center mb-4">
+              <div>
+                <h2 className="mb-1">Users Management 👥</h2>
+                <p className="text-muted mb-0">
+                  Manage system users and their permissions
+                </p>
               </div>
             </div>
-          </div>
 
-          {/* Users Table */}
-          <div className="card shadow-sm">
-            <div className="card-body">
-              {filteredUsers.length === 0 ? (
-                <div className="text-center py-5">
-                  <i className="bi bi-people display-4 text-muted mb-3"></i>
-                  <h5 className="text-muted">No {activeTab} users found</h5>
-                  <p className="text-muted">
-                    {activeTab === "active" 
-                      ? "No active users to display" 
-                      : "No users have been archived yet"
-                    }
-                  </p>
+            {/* Tabs */}
+            <ul className="nav nav-tabs mb-4">
+              <li className="nav-item">
+                <button
+                  className={`nav-link ${activeTab === "active" ? "active" : ""}`}
+                  onClick={() => setActiveTab("active")}
+                >
+                  <i className="bi bi-people me-2"></i>
+                  Active Users ({users.filter(u => !u.archived).length})
+                </button>
+              </li>
+              <li className="nav-item">
+                <button
+                  className={`nav-link ${activeTab === "archived" ? "active" : ""}`}
+                  onClick={() => setActiveTab("archived")}
+                >
+                  <i className="bi bi-archive me-2"></i>
+                  Archived Users ({users.filter(u => u.archived).length})
+                </button>
+              </li>
+            </ul>
+
+            {/* Search Bar */}
+            <div className="row mb-4">
+              <div className="col-md-6">
+                <div className="input-group">
+                  <span className="input-group-text">
+                    <i className="bi bi-search"></i>
+                  </span>
+                  <input
+                    type="text"
+                    className="form-control"
+                    placeholder={`Search ${activeTab} users...`}
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                  />
                 </div>
-              ) : (
-                <div className="table-responsive">
-                  <table className="table table-hover">
-                    <thead className="table-light">
-                      <tr>
-                        <th>User</th>
-                        <th>Role</th>
-                        <th>Campus</th>
-                        <th>Floor</th>
-                        <th>Status</th>
-                        <th>Join Date</th>
-                        <th>Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {filteredUsers.map((user) => (
-                        <tr key={user.id}>
-                          <td>
-                            <div>
-                              <strong>{user.displayName}</strong>
-                              <br />
-                              <small className="text-muted">{user.email}</small>
-                            </div>
-                          </td>
-                          <td>
-                            <span className={`badge ${getRoleBadgeClass(user.role)}`}>
-                              {user.role}
-                            </span>
-                          </td>
-                          <td>{user.campus}</td>
-                          <td>{user.floor}</td>
-                          <td>
-                            <span className={`badge ${getStatusBadgeClass(user.status)}`}>
-                              {user.status}
-                            </span>
-                          </td>
-                          <td>
-                            <small className="text-muted">{user.joinDate}</small>
-                          </td>
-                          <td className="text-center align-middle">
-                            <div className="d-flex justify-content-center flex-wrap gap-2">
-                              {activeTab === "active" ? (
-                                <>
-                                  <button
-                                    className="btn btn-outline-warning btn-sm"
-                                    onClick={() => handleArchiveClick(user)}
-                                    title="Archive User"
-                                  >
-                                    <i className="bi bi-archive me-1"></i> Archive
-                                  </button>
-                                  <button
-                                    className="btn btn-outline-danger btn-sm"
-                                    onClick={() => handleDeleteClick(user)}
-                                    title="Delete User"
-                                  >
-                                    <i className="bi bi-trash me-1"></i> Delete
-                                  </button>
-                                </>
-                              ) : (
-                                <>
-                                  <button
-                                    className="btn btn-outline-success btn-sm"
-                                    onClick={() => handleRestoreClick(user)}
-                                    title="Restore User"
-                                  >
-                                    <i className="bi bi-arrow-counterclockwise me-1"></i> Restore
-                                  </button>
-                                  <button
-                                    className="btn btn-outline-danger btn-sm"
-                                    onClick={() => handleDeleteClick(user)}
-                                    title="Delete User"
-                                  >
-                                    <i className="bi bi-trash me-1"></i> Delete
-                                  </button>
-                                </>
-                              )}
-                            </div>
-                          </td>
+              </div>
+            </div>
+
+            {/* Users Table */}
+            <div className="card bg-light shadow-sm border-0">
+              <div className="card-body">
+                {filteredUsers.length === 0 ? (
+                  <div className="text-center py-5">
+                    <i className="bi bi-people display-4 text-muted mb-3"></i>
+                    <h5 className="text-muted">No {activeTab} users found</h5>
+                    <p className="text-muted">
+                      {activeTab === "active" 
+                        ? "No active users to display" 
+                        : "No users have been archived yet"
+                      }
+                    </p>
+                  </div>
+                ) : (
+                  <div className="table-responsive">
+                    <table className="table table-hover align-middle">
+                      <thead className="table-light">
+                        <tr>
+                          <th>User</th>
+                          <th>Role</th>
+                          <th>Campus</th>
+                          <th>Floor</th>
+                          <th>Status</th>
+                          <th>Join Date</th>
+                          <th>Actions</th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
+                      </thead>
+                      <tbody>
+                        {filteredUsers.map((user) => (
+                          <tr key={user.id}>
+                            <td>
+                              <div>
+                                <strong>{user.displayName}</strong>
+                                <br />
+                                <small className="text-muted">{user.email}</small>
+                              </div>
+                            </td>
+                            <td>
+                              <span className={`badge ${getRoleBadgeClass(user.role)}`}>
+                                {user.role}
+                              </span>
+                            </td>
+                            <td>{user.campus}</td>
+                            <td>{user.floor}</td>
+                            <td>
+                              <span className={`badge ${getStatusBadgeClass(user.status)}`}>
+                                {user.status}
+                              </span>
+                            </td>
+                            <td>
+                              <small className="text-muted">{user.joinDate}</small>
+                            </td>
+                            <td>
+                              <div className="d-flex flex-wrap gap-2">
+                                {activeTab === "active" ? (
+                                  <>
+                                    <button
+                                      className="btn btn-outline-warning btn-sm"
+                                      onClick={() => handleArchiveClick(user)}
+                                    >
+                                      <i className="bi bi-archive me-1"></i>Archive
+                                    </button>
+                                    <button
+                                      className="btn btn-outline-danger btn-sm"
+                                      onClick={() => handleDeleteClick(user)}
+                                    >
+                                      <i className="bi bi-trash me-1"></i>Delete
+                                    </button>
+                                  </>
+                                ) : (
+                                  <>
+                                    <button
+                                      className="btn btn-outline-success btn-sm"
+                                      onClick={() => handleRestoreClick(user)}
+                                    >
+                                      <i className="bi bi-arrow-counterclockwise me-1"></i>
+                                      Restore
+                                    </button>
+                                    <button
+                                      className="btn btn-outline-danger btn-sm"
+                                      onClick={() => handleDeleteClick(user)}
+                                    >
+                                      <i className="bi bi-trash me-1"></i>Delete
+                                    </button>
+                                  </>
+                                )}
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>
 
         {/* Delete Confirmation Modal */}
         {showDeletePopup && (
-          <div className="modal show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
-            <div className="modal-dialog modal-dialog-centered">
-              <div className="modal-content">
-                <div className="modal-header">
-                  <h5 className="modal-title text-danger">
-                    <i className="bi bi-exclamation-triangle me-2"></i>
-                    Confirm Delete
-                  </h5>
-                  <button 
-                    type="button" 
-                    className="btn-close" 
-                    onClick={() => setShowDeletePopup(false)}
-                  ></button>
-                </div>
-                <div className="modal-body">
-                  <p>
-                    Are you sure you want to delete user <strong>{selectedUser?.displayName}</strong>?
-                    <br />
-                    <small className="text-muted">Email: {selectedUser?.email}</small>
-                  </p>
-                  <p className="text-danger">
-                    <i className="bi bi-exclamation-triangle me-1"></i> This action cannot be undone.
-                  </p>
-                </div>
-                <div className="modal-footer">
-                  <button 
-                    type="button" 
-                    className="btn btn-secondary" 
-                    onClick={() => setShowDeletePopup(false)}
-                  >
-                    <i className="bi bi-x-circle me-1"></i>
-                    Cancel
-                  </button>
-                  <button 
-                    type="button" 
-                    className="btn btn-danger" 
-                    onClick={confirmDelete}
-                  >
-                    <i className="bi bi-trash me-1"></i>
-                    Delete User
-                  </button>
-                </div>
+          <div
+            className="position-fixed top-0 start-0 w-100 h-100 bg-dark bg-opacity-50 d-flex align-items-center justify-content-center"
+            style={{ zIndex: 1050 }}
+          >
+            <div className="bg-white p-4 rounded shadow" style={{ width: "400px" }}>
+              <h5 className="text-danger mb-3">Confirm Delete</h5>
+              <p>
+                Are you sure you want to delete user <strong>{selectedUser?.displayName}</strong>?
+                <br />
+                <small className="text-muted">Email: {selectedUser?.email}</small>
+              </p>
+              <p className="text-danger">
+                <i className="bi bi-exclamation-triangle me-1"></i> This action cannot be undone.
+              </p>
+              <div className="text-end">
+                <button
+                  className="btn btn-secondary me-2"
+                  onClick={() => setShowDeletePopup(false)}
+                >
+                  Cancel
+                </button>
+                <button className="btn btn-danger" onClick={confirmDelete}>
+                  Delete User
+                </button>
               </div>
             </div>
           </div>
@@ -340,51 +332,35 @@ const Users = () => {
 
         {/* Archive/Restore Confirmation Modal */}
         {showArchivePopup && (
-          <div className="modal show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
-            <div className="modal-dialog modal-dialog-centered">
-              <div className="modal-content">
-                <div className="modal-header">
-                  <h5 className="modal-title text-warning">
-                    <i className="bi bi-archive me-2"></i>
-                    {selectedUser?.archived ? 'Restore User' : 'Archive User'}
-                  </h5>
-                  <button 
-                    type="button" 
-                    className="btn-close" 
-                    onClick={() => setShowArchivePopup(false)}
-                  ></button>
-                </div>
-                <div className="modal-body">
-                  <p>
-                    Are you sure you want to {selectedUser?.archived ? 'restore' : 'archive'} user{" "}
-                    <strong>{selectedUser?.displayName}</strong>?
-                    <br />
-                    <small className="text-muted">Email: {selectedUser?.email}</small>
-                  </p>
-                  {!selectedUser?.archived && (
-                    <p className="text-muted">
-                      <i className="bi bi-info-circle me-1"></i> Archived users will be hidden from active view but can be restored later.
-                    </p>
-                  )}
-                </div>
-                <div className="modal-footer">
-                  <button 
-                    type="button" 
-                    className="btn btn-secondary" 
-                    onClick={() => setShowArchivePopup(false)}
-                  >
-                    <i className="bi bi-x-circle me-1"></i>
-                    Cancel
-                  </button>
-                  <button 
-                    type="button" 
-                    className="btn btn-warning" 
-                    onClick={confirmArchive}
-                  >
-                    <i className="bi bi-archive me-1"></i>
-                    {selectedUser?.archived ? 'Restore User' : 'Archive User'}
-                  </button>
-                </div>
+          <div
+            className="position-fixed top-0 start-0 w-100 h-100 bg-dark bg-opacity-50 d-flex align-items-center justify-content-center"
+            style={{ zIndex: 1050 }}
+          >
+            <div className="bg-white p-4 rounded shadow" style={{ width: "400px" }}>
+              <h5 className="text-warning mb-3">
+                {selectedUser?.archived ? 'Restore User' : 'Archive User'}
+              </h5>
+              <p>
+                Are you sure you want to {selectedUser?.archived ? 'restore' : 'archive'} user{" "}
+                <strong>{selectedUser?.displayName}</strong>?
+                <br />
+                <small className="text-muted">Email: {selectedUser?.email}</small>
+              </p>
+              {!selectedUser?.archived && (
+                <p className="text-muted">
+                  <i className="bi bi-info-circle me-1"></i> Archived users will be hidden from active view but can be restored later.
+                </p>
+              )}
+              <div className="text-end">
+                <button
+                  className="btn btn-secondary me-2"
+                  onClick={() => setShowArchivePopup(false)}
+                >
+                  Cancel
+                </button>
+                <button className="btn btn-warning" onClick={confirmArchive}>
+                  {selectedUser?.archived ? 'Restore User' : 'Archive User'}
+                </button>
               </div>
             </div>
           </div>

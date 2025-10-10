@@ -46,7 +46,7 @@ const UserNotifications = () => {
         <div className="container">
           {/* Header */}
           <div className="d-flex justify-content-between align-items-center mb-4">
-            <h1 className="fw-bold text-success">Notifications</h1>
+            <h1 className="fw-bold">Notifications</h1>
             <span className="text-muted">{notifications.length} total</span>
           </div>
 

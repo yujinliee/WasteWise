@@ -14,6 +14,28 @@ body {
   line-height: 1.6;
 }
 
+/* Root wrapper for dashboard pages to match navbar color */
+.dashboard-root {
+  background: #f8f8f8; 
+  }
+
+/* Sidebar as second layer: rounded, elevated and inset */
+.sidebar {
+  border-radius: 16px; /* full rounded corners */
+  margin: 18px 12px; /* inset from edges so gray shows behind */
+  padding: 20px 14px !important; /* ensure interior spacing */
+  box-shadow: 0 10px 30px rgba(13,71,21,0.12);
+  z-index: 30;
+  border-right: 2px solid rgba(0,0,0,0.06) !important;
+}
+
+/* Ensure the dashboard content (third layer) sits visually above the gray background but separate from sidebar */
+.dashboard-content {
+  margin-left: 8px;
+  margin-right: 12px;
+  z-index: 20;/* plain page background under dashboard content */
+}
+
 /* Dashboard container */
 .dashboard-container {
   display: flex;
@@ -31,6 +53,37 @@ body {
   width: calc(100% - 280px);
   overflow-y: auto;
   max-height: 100vh;
+}
+
+/* Dashboard content specific styles */
+.dashboard-content {
+  border-radius: 12px;
+  padding: 20px 28px 24px 20px; /* top/right/bottom/left */
+  margin: 8px 12px; /* separate from edges so radius is visible */
+  background: #ffffff; /* make rounded container visible */
+  /* slightly stronger, soft green-tinted shadow */
+  box-shadow: 0 10px 30px rgba(13,71,21,0.08);
+  overflow: auto; /* allow internal scrolling */
+}
+
+/* Custom scrollbar for WebKit browsers */
+.dashboard-content::-webkit-scrollbar {
+  width: 10px;
+}
+.dashboard-content::-webkit-scrollbar-track {
+  background: rgba(13,71,21,0.06);
+  border-radius: 10px;
+}
+.dashboard-content::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #5D866C, #0D4715);
+  border-radius: 10px;
+  border: 2px solid rgba(255,255,255,0.12);
+}
+
+/* Firefox scrollbar */
+.dashboard-content {
+  scrollbar-width: thin;
+  scrollbar-color: #0D4715 rgba(13,71,21,0.06);
 }
 
 .welcome-section {
@@ -56,8 +109,17 @@ body {
   border-radius: 12px;
   padding: 20px;
   margin-bottom: 25px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-  border: 1px solid #e0e0e0;
+  /* more pronounced card shadow */
+  box-shadow: 0 8px 24px rgba(15, 45, 35, 0.08);
+  border: 1px solid #e6ebe9;
+  transition: transform 180ms ease, box-shadow 180ms ease;
+}
+
+/* subtle lift on hover/focus to make cards feel interactive */
+.widget:hover,
+.widget:focus-within {
+  transform: translateY(-6px);
+  box-shadow: 0 18px 40px rgba(13,71,21,0.12);
 }
 
 .widget-header {

@@ -25,108 +25,137 @@ const NavbarAdmin = () => {
   };
 
   return (
-    <div 
-      className="d-flex flex-column bg-white border-end position-fixed"
-      style={{ 
-        width: "250px", 
-        height: "100vh",
-        top: 0,
-        left: 0,
-        overflowY: "auto" // Allows scrolling only if content exceeds viewport
+    <aside
+      className="sidebar d-flex flex-column justify-content-between align-items-center vh-100 shadow-lg"
+      style={{
+        width: "260px",
+        background: "#0D4715",
+        color: "#fff",
+        borderRight: "2px solid #0D4715",
+        borderTopRightRadius: 16,
+        borderBottomRightRadius: 16,
+        padding: "20px 12px",
+        overflow: "hidden",
+        position: "sticky",
+        top: 18,
+        maxHeight: "calc(100vh - 36px)",
       }}
     >
       {/* Branding */}
-      <div className="text-center py-4 text-black border-bottom">
-        <h4 className="mb-0 fw-bold">🌱 WasteWise</h4>
-        <small className="opacity-75">Smart Waste Management</small>
-      </div>
-
-      {/* Profile Section */}
-      <div className="text-center border-bottom py-4">
-        <img
-          src={user?.photoURL || "/default-profile.png"}
-          alt="Admin Profile"
-          className="rounded-circle mb-2"
-          style={{ width: 80, height: 80, objectFit: "cover" }}
-        />
-        <h6 className="fw-bold mb-1">{user?.displayName || "Admin"}</h6>
-        <p className="text-muted small mb-0">{user?.email || "No email"}</p>
-      </div>
-
-      {/* Navigation - Fixed height with scroll if needed */}
-      <div 
-        className="flex-grow-1 d-flex flex-column justify-content-center"
-        style={{ minHeight: "0" }} // Important for flexbox scrolling
+      <div
+        className="w-100 text-center py-4 mb-2"
+        style={{ borderBottom: "1px solid #417255" }}
       >
-        <nav 
-          className="nav flex-column text-start px-3"
-          style={{ maxHeight: "100%", overflowY: "auto" }}
-        >
-          <NavLink
-            to="/admin"
-            className={({ isActive }) =>
-              `nav-link px-4 py-3 mb-2 rounded ${
-                isActive ? "text-success fw-bold bg-light border" : "text-dark"
-              }`
-            }
-          >
-            <span className="me-3">🏠</span>
-            Dashboard
-          </NavLink>
-          <NavLink
-            to="/admin/bins"
-            className={({ isActive }) =>
-              `nav-link px-4 py-3 mb-2 rounded ${
-                isActive ? "text-success fw-bold bg-light border" : "text-dark"
-              }`
-            }
-          >
-            <span className="me-3">🗑️</span>
-            Bins
-          </NavLink>
-          <NavLink
-            to="/admin/notifications"
-            className={({ isActive }) =>
-              `nav-link px-4 py-3 mb-2 rounded ${
-                isActive ? "text-success fw-bold bg-light border" : "text-dark"
-              }`
-            }
-          >
-            <span className="me-3">🔔</span>
-            Notifications
-          </NavLink>
-          <NavLink
-            to="/admin/users"
-            className={({ isActive }) =>
-              `nav-link px-4 py-3 mb-2 rounded ${
-                isActive ? "text-success fw-bold bg-light border" : "text-dark"
-              }`
-            }
-          >
-            <span className="me-3">👥</span>
-            Users
-          </NavLink>
-          <NavLink
-            to="/admin/settings"
-            className={({ isActive }) =>
-              `nav-link px-4 py-3 mb-2 rounded ${
-                isActive ? "text-success fw-bold bg-light border" : "text-dark"
-              }`
-            }
-          >
-            <span className="me-3">⚙️</span>
-            Settings
-          </NavLink>
-        </nav>
+        <img
+          src={require("../assets/Logo.png")}
+          alt="Logo"
+          style={{ width: 56, height: 56, marginBottom: 8 }}
+        />
+        <h4 className="mb-0 fw-bold" style={{ color: "#fff", letterSpacing: 1 }}>
+          TrashAlign
+        </h4>
+        <small className="opacity-75" style={{ color: "#e0f2e9" }}>
+          Admin Dashboard
+        </small>
       </div>
+      {/* Navigation */}
+      <nav
+        className="w-100 flex-grow-1 d-flex flex-column align-items-center pt-3"
+        style={{ gap: 8 }}
+      >
+        <NavLink
+          to="/admin"
+          className={({ isActive }) =>
+            `w-75 nav-link d-flex align-items-center px-3 py-2 mb-2 rounded-pill fw-semibold ${
+              isActive ? "bg-white text-success shadow-sm" : "text-white"
+            }`
+          }
+          style={{ fontSize: "1.08rem", transition: "all 0.2s" }}
+        >
+          <span className="me-2" style={{ fontSize: "1.3rem" }}>
+            🏠
+          </span>
+          Dashboard
+        </NavLink>
 
-      {/* Logout Button - Fixed at bottom */}
-      <div className="px-3 pb-4 mt-auto">
-        <button className="btn btn-outline-danger w-100 py-2" onClick={handleLogout}>
-          🚪 Logout
+        <NavLink
+          to="/admin/bins"
+          className={({ isActive }) =>
+            `w-75 nav-link d-flex align-items-center px-3 py-2 mb-2 rounded-pill fw-semibold ${
+              isActive ? "bg-white text-success shadow-sm" : "text-white"
+            }`
+          }
+          style={{ fontSize: "1.08rem", transition: "all 0.2s" }}
+        >
+          <span className="me-2" style={{ fontSize: "1.3rem" }}>
+            🗑️
+          </span>
+          Bins
+        </NavLink>
+
+        <NavLink
+          to="/admin/notifications"
+          className={({ isActive }) =>
+            `w-75 nav-link d-flex align-items-center px-3 py-2 mb-2 rounded-pill fw-semibold ${
+              isActive ? "bg-white text-success shadow-sm" : "text-white"
+            }`
+          }
+          style={{ fontSize: "1.08rem", transition: "all 0.2s" }}
+        >
+          <span className="me-2" style={{ fontSize: "1.3rem" }}>
+            🔔
+          </span>
+          Notifications
+        </NavLink>
+
+        <NavLink
+          to="/admin/users"
+          className={({ isActive }) =>
+            `w-75 nav-link d-flex align-items-center px-3 py-2 mb-2 rounded-pill fw-semibold ${
+              isActive ? "bg-white text-success shadow-sm" : "text-white"
+            }`
+          }
+          style={{ fontSize: "1.08rem", transition: "all 0.2s" }}
+        >
+          <span className="me-2" style={{ fontSize: "1.3rem" }}>
+            👥
+          </span>
+          Users
+        </NavLink>
+
+        <NavLink
+          to="/admin/settings"
+          className={({ isActive }) =>
+            `w-75 nav-link d-flex align-items-center px-3 py-2 mb-2 rounded-pill fw-semibold ${
+              isActive ? "bg-white text-success shadow-sm" : "text-white"
+            }`
+          }
+          style={{ fontSize: "1.08rem", transition: "all 0.2s" }}
+        >
+          <span className="me-2" style={{ fontSize: "1.3rem" }}>
+            ⚙️
+          </span>
+          Settings
+        </NavLink>
+      </nav>
+
+      {/* Logout Button */}
+      <div className="w-100 px-4 pb-4">
+        <button
+          className="btn w-100 py-2 rounded-pill fw-bold"
+          style={{
+            backgroundColor: "#417255",
+            color: "#fff",
+            border: "none",
+            boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
+          }}
+          onClick={handleLogout}
+        >
+          <span style={{ fontSize: "1.2rem" }}>🚪</span>{" "}
+          <span className="ms-2">Sign out</span>
         </button>
       </div>
-    </div>
+    </aside>
   );
 };
 

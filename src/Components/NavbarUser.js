@@ -19,86 +19,68 @@ const NavbarUser = () => {
   };
 
   return (
-    <div
-      className="d-flex flex-column bg-white border-end vh-100"
-      style={{ width: "250px" }}
+    <aside
+      className="sidebar d-flex flex-column justify-content-between align-items-center vh-100 shadow-lg"
+       style={{ width: "260px", background: "#0D4715", color: "#fff", borderRight: "2px solid #0D4715", borderTopRightRadius: 16, borderBottomRightRadius: 16, padding: '20px 12px', overflow: 'hidden', position: 'sticky', top: 18, maxHeight: 'calc(100vh - 36px)' }}
     >
-      {/* App Branding - Larger Title */}
-      <div className="text-center py-4 text-black">
-        <h4 className="mb-0 fw-bold">🌱 WasteWise</h4>
-        <small className="opacity-75">Smart Waste Management</small>
+      {/* Branding */}
+      <div className="w-100 text-center py-4 mb-2" style={{ borderBottom: "1px solid #417255" }}>
+        <img src={require('../assets/Logo.png')} alt="Logo" style={{ width: 56, height: 56, marginBottom: 8 }} />
+        <h4 className="mb-0 fw-bold" style={{ color: "#fff", letterSpacing: 1 }}>TrashAlign</h4>
+        <small className="opacity-75" style={{ color: "#e0f2e9" }}>Smart Waste Management</small>
       </div>
 
-      {/* Profile Section - Moved up */}
-      <div className="text-center border-bottom py-4">
-        <img
-          src={user?.photoURL || "/default-profile.png"}
-          alt="Profile"
-          className="rounded-circle mb-2"
-          style={{ width: 80, height: 80, objectFit: "cover" }}
-        />
-        <h6 className="fw-bold mb-1">{user?.displayName || "User"}</h6>
-        <p className="text-muted small mb-0">{user?.email || "No email"}</p>
-      </div>
+      {/* Navigation */}
+      <nav className="w-100 flex-grow-1 d-flex flex-column align-items-center pt-3" style={{ gap: 8 }}>
+        <NavLink
+          to="/dashboard"
+          className={({ isActive }) =>
+            `w-75 nav-link d-flex align-items-center px-3 py-2 mb-2 rounded-pill fw-semibold ${
+              isActive ? "bg-white text-success shadow-sm" : "text-white"
+            }`
+          }
+          style={{ fontSize: "1.08rem", transition: "all 0.2s" }}
+        >
+          <span className="me-2" style={{ fontSize: "1.3rem" }}>🏠</span>
+          Dashboard
+        </NavLink>
+        <NavLink
+          to="/bins"
+          className={({ isActive }) =>
+            `w-75 nav-link d-flex align-items-center px-3 py-2 mb-2 rounded-pill fw-semibold ${
+              isActive ? "bg-white text-success shadow-sm" : "text-white"
+            }`
+          }
+          style={{ fontSize: "1.08rem", transition: "all 0.2s" }}
+        >
+          <span className="me-2" style={{ fontSize: "1.3rem" }}>🗑️</span>
+          Bins
+        </NavLink>
+        <NavLink
+          to="/settings"
+          className={({ isActive }) =>
+            `w-75 nav-link d-flex align-items-center px-3 py-2 mb-2 rounded-pill fw-semibold ${
+              isActive ? "bg-white text-success shadow-sm" : "text-white"
+            }`
+          }
+          style={{ fontSize: "1.08rem", transition: "all 0.2s" }}
+        >
+          <span className="me-2" style={{ fontSize: "1.3rem" }}>⚙️</span>
+          Settings
+        </NavLink>
+      </nav>
 
-      {/* Spacer to push navigation down */}
-      <div className="flex-grow-1 d-flex flex-column justify-content-center">
-        {/* Navigation - Centered vertically */}
-        <nav className="nav flex-column text-start px-3">
-          <NavLink
-            to="/dashboard"
-            className={({ isActive }) =>
-              `nav-link px-4 py-3 mb-2 rounded ${
-                isActive ? "text-success fw-bold bg-light border" : "text-dark"
-              }`
-            }
-          >
-            <span className="me-3">🏠</span>
-            Dashboard
-          </NavLink>
-          <NavLink
-            to="/bins"
-            className={({ isActive }) =>
-              `nav-link px-4 py-3 mb-2 rounded ${
-                isActive ? "text-success fw-bold bg-light border" : "text-dark"
-              }`
-            }
-          >
-            <span className="me-3">🗑️</span>
-            Bins
-          </NavLink>
-          <NavLink
-            to="/notifications"
-            className={({ isActive }) =>
-              `nav-link px-4 py-3 mb-2 rounded ${
-                isActive ? "text-success fw-bold bg-light border" : "text-dark"
-              }`
-            }
-          >
-            <span className="me-3">🔔</span>
-            Notifications
-          </NavLink>
-          <NavLink
-            to="/settings"
-            className={({ isActive }) =>
-              `nav-link px-4 py-3 mb-2 rounded ${
-                isActive ? "text-success fw-bold bg-light border" : "text-dark"
-              }`
-            }
-          >
-            <span className="me-3">⚙️</span>
-            Settings
-          </NavLink>
-        </nav>
-      </div>
-
-      {/* Logout - Fixed at bottom */}
-      <div className="px-3 pb-4">
-        <button className="btn btn-outline-danger w-100 py-2" onClick={handleLogout}>
-          🚪 Logout
+      {/* Logout */}
+      <div className="w-100 px-4 pb-4">
+        <button
+          className="btn w-100 py-2 rounded-pill fw-bold"
+          style={{ backgroundColor: "#417255", color: "#fff", border: "none", boxShadow: "0 2px 8px rgba(0,0,0,0.08)" }}
+          onClick={handleLogout}
+        >
+          <span style={{ fontSize: "1.2rem" }}>🚪</span> <span className="ms-2">Sign out</span>
         </button>
       </div>
-    </div>
+    </aside>
   );
 };
 

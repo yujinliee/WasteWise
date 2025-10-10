@@ -12,35 +12,38 @@ export function UserProvider({ children }) {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       if (currentUser) {
-        setUser({
-          uid: currentUser.uid,
-          displayName: currentUser.displayName,
-          email: currentUser.email,
-          photoURL: currentUser.photoURL,
-          provider: currentUser.providerData[0]?.providerId || "firebase",
-        });
+        setUser(formatUser(currentUser));
       } else {
         setUser(null);
       }
       setLoading(false);
     });
+
     return () => unsubscribe();
   }, []);
 
-  // 🧩 Function to manually refresh user info (used after saving settings)
+  // 🧩 Function to refresh user info (after profile update)
   const refreshUser = async () => {
-    if (auth.currentUser) {
-      await reload(auth.currentUser);
-      const refreshedUser = auth.currentUser;
-      setUser({
-        uid: refreshedUser.uid,
-        displayName: refreshedUser.displayName,
-        email: refreshedUser.email,
-        photoURL: refreshedUser.photoURL,
-        provider: refreshedUser.providerData[0]?.providerId || "firebase",
-      });
+    try {
+      if (auth.currentUser) {
+        await reload(auth.currentUser);
+        setUser(formatUser(auth.currentUser));
+      }
+    } catch (error) {
+      console.error("Failed to refresh user:", error);
     }
   };
+
+  // 🧱 Utility function to standardize user structure
+  const formatUser = (firebaseUser) => ({
+    uid: firebaseUser.uid,
+    displayName: firebaseUser.displayName || "User",
+    email: firebaseUser.email || "",
+    photoURL:
+      firebaseUser.photoURL ||
+      "https://cdn-icons-png.flaticon.com/512/847/847969.png", // default avatar
+    provider: firebaseUser.providerData[0]?.providerId || "firebase",
+  });
 
   return (
     <UserContext.Provider value={{ user, setUser, refreshUser }}>

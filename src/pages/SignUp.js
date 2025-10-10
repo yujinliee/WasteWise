@@ -260,7 +260,7 @@ function SignUpModal({ open, handleClose }) {
                   className="btn btn-link text-primary fw-semibold p-0 border-0 align-baseline"
                   onClick={handleClose}
                 >
-                  Log In
+                  Sign In
                 </button>
               </p>
             </div>
