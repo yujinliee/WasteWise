@@ -55,9 +55,10 @@ const NavbarAdmin = () => {
           TrashAlign
         </h4>
         <small className="opacity-75" style={{ color: "#e0f2e9" }}>
-          Admin Dashboard
+          Smart Waste Management
         </small>
       </div>
+
       {/* Navigation */}
       <nav
         className="w-100 flex-grow-1 d-flex flex-column align-items-center pt-3"
@@ -65,6 +66,7 @@ const NavbarAdmin = () => {
       >
         <NavLink
           to="/admin"
+          end
           className={({ isActive }) =>
             `w-75 nav-link d-flex align-items-center px-3 py-2 mb-2 rounded-pill fw-semibold ${
               isActive ? "bg-white text-success shadow-sm" : "text-white"
@@ -72,9 +74,7 @@ const NavbarAdmin = () => {
           }
           style={{ fontSize: "1.08rem", transition: "all 0.2s" }}
         >
-          <span className="me-2" style={{ fontSize: "1.3rem" }}>
-            🏠
-          </span>
+          <span className="me-2" style={{ fontSize: "1.3rem" }}>🏠</span>
           Dashboard
         </NavLink>
 
@@ -87,9 +87,7 @@ const NavbarAdmin = () => {
           }
           style={{ fontSize: "1.08rem", transition: "all 0.2s" }}
         >
-          <span className="me-2" style={{ fontSize: "1.3rem" }}>
-            🗑️
-          </span>
+          <span className="me-2" style={{ fontSize: "1.3rem" }}>🗑️</span>
           Bins
         </NavLink>
 
@@ -102,9 +100,7 @@ const NavbarAdmin = () => {
           }
           style={{ fontSize: "1.08rem", transition: "all 0.2s" }}
         >
-          <span className="me-2" style={{ fontSize: "1.3rem" }}>
-            🔔
-          </span>
+          <span className="me-2" style={{ fontSize: "1.3rem" }}>🔔</span>
           Notifications
         </NavLink>
 
@@ -117,9 +113,7 @@ const NavbarAdmin = () => {
           }
           style={{ fontSize: "1.08rem", transition: "all 0.2s" }}
         >
-          <span className="me-2" style={{ fontSize: "1.3rem" }}>
-            👥
-          </span>
+          <span className="me-2" style={{ fontSize: "1.3rem" }}>👥</span>
           Users
         </NavLink>
 
@@ -132,9 +126,7 @@ const NavbarAdmin = () => {
           }
           style={{ fontSize: "1.08rem", transition: "all 0.2s" }}
         >
-          <span className="me-2" style={{ fontSize: "1.3rem" }}>
-            ⚙️
-          </span>
+          <span className="me-2" style={{ fontSize: "1.3rem" }}>⚙️</span>
           Settings
         </NavLink>
       </nav>

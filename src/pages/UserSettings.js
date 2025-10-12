@@ -1,69 +1,68 @@
 import React, { useState, useEffect } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
 import NavbarUser from "../Components/NavbarUser";
-import { auth } from "../Components/firebase";
-import {
-  updateProfile,
-  updateEmail,
-  reload,
-  updatePassword,
-  reauthenticateWithCredential,
-  EmailAuthProvider,
-} from "firebase/auth";
-import { useUser } from "../Components/UserContext";
 import TopNavbarUser from "../Components/TopNavbarUser";
+import { auth, storage } from "../Components/firebase";
+import { useUser } from "../Components/UserContext";
 import "../styles/UserDashboard.css";
 import "animate.css";
 import "bootstrap-icons/font/bootstrap-icons.css";
+import {
+  updateProfile,
+  reauthenticateWithCredential,
+  EmailAuthProvider,
+  updatePassword,
+} from "firebase/auth";
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 
 function UserSettings() {
   const { user, refreshUser } = useUser();
   const [activeTab, setActiveTab] = useState("profile");
+  const [isLoading, setIsLoading] = useState(false);
   const [showPopup, setShowPopup] = useState(false);
   const [popupMessage, setPopupMessage] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
 
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
-    email: "",
-    phone: "",
+    profilePicture: null,
     currentPassword: "",
     newPassword: "",
     confirmPassword: "",
-    profilePicture: null,
-    darkMode: false,
-    emailNotifications: true,
-    showCurrent: false,
-    showNew: false,
-    showConfirm: false,
   });
 
+  // Initialize form data from user
   useEffect(() => {
     if (user) {
-      const names = auth.currentUser?.displayName?.split(" ") || ["", ""];
+      const names = (user.displayName || "").split(" ");
       setFormData((prev) => ({
         ...prev,
         firstName: names[0] || "",
-        lastName: names[1] || "",
-        email: auth.currentUser?.email || "",
-        phone: auth.currentUser?.phoneNumber || "",
+        lastName: names.slice(1).join(" ") || "",
       }));
     }
   }, [user]);
 
   const handleChange = (e) => {
-    const { name, value, type, checked, files } = e.target;
+    const { name, value, type, files } = e.target;
     if (type === "file") {
-      setFormData((prev) => ({
-        ...prev,
-        profilePicture: files[0] || null,
-      }));
+      const file = files[0];
+      if (file) {
+        const allowedTypes = ["image/jpeg", "image/jpg", "image/png"];
+        if (!allowedTypes.includes(file.type)) {
+          alert("❌ Please select only JPG or PNG images!");
+          e.target.value = "";
+          return;
+        }
+        if (file.size > 2 * 1024 * 1024) {
+          alert("❌ Image size should be less than 2MB!");
+          e.target.value = "";
+          return;
+        }
+        setFormData((prev) => ({ ...prev, profilePicture: file }));
+      }
     } else {
-      setFormData((prev) => ({
-        ...prev,
-        [name]: type === "checkbox" ? checked : value,
-      }));
+      setFormData((prev) => ({ ...prev, [name]: value }));
     }
   };
 
@@ -75,12 +74,11 @@ function UserSettings() {
 
   const resetProfileForm = () => {
     if (user) {
-      const names = auth.currentUser?.displayName?.split(" ") || ["", ""];
+      const names = (user.displayName || "").split(" ");
       setFormData((prev) => ({
         ...prev,
         firstName: names[0] || "",
-        lastName: names[1] || "",
-        email: auth.currentUser?.email || "",
+        lastName: names.slice(1).join(" ") || "",
         profilePicture: null,
       }));
     }
@@ -94,542 +92,417 @@ function UserSettings() {
       currentPassword: "",
       newPassword: "",
       confirmPassword: "",
-      showCurrent: false,
-      showNew: false,
-      showConfirm: false,
     }));
   };
 
+  // PROFILE UPDATE
   const handleProfileSubmit = async (e) => {
     e.preventDefault();
-    if (!user) return;
+    if (!user) {
+      alert("⚠️ No user found. Please log in again.");
+      return;
+    }
 
     setIsLoading(true);
     try {
       const fullName = `${formData.firstName} ${formData.lastName}`.trim();
-      if (!fullName) {
-        alert("⚠️ Please enter both first and last name.");
-        return;
+      if (!fullName) throw new Error("Please enter first and last name.");
+
+      const updates = { displayName: fullName };
+
+      // Upload profile picture if selected
+      if (formData.profilePicture) {
+        const compressedFile = await compressImage(formData.profilePicture);
+        const storageRef = ref(
+          storage,
+          `profile_pictures/${user.uid}/profile_${Date.now()}.jpg`
+        );
+        const snapshot = await uploadBytes(storageRef, compressedFile);
+        const downloadURL = await getDownloadURL(snapshot.ref);
+        updates.photoURL = downloadURL;
       }
 
-      const updates = {};
-      if (fullName !== user.displayName) updates.displayName = fullName;
+      await updateProfile(auth.currentUser, updates);
+      if (refreshUser) await refreshUser();
 
-      if (formData.profilePicture instanceof File) {
-        const reader = new FileReader();
-        reader.onloadend = async () => {
-          try {
-            updates.photoURL = reader.result;
-            await updateProfile(user, updates);
-            if (formData.email && formData.email !== user.email)
-              await updateEmail(user, formData.email);
-            await reload(user);
-            await refreshUser();
-            showNotification("✅ Profile updated successfully!");
-            resetProfileForm();
-          } catch (error) {
-            alert("⚠️ Failed to update profile. Try again later.");
-          } finally {
-            setIsLoading(false);
-          }
-        };
-        reader.readAsDataURL(formData.profilePicture);
-      } else {
-        if (Object.keys(updates).length > 0) await updateProfile(user, updates);
-        if (formData.email && formData.email !== user.email)
-          await updateEmail(user, formData.email);
-        await reload(user);
-        await refreshUser();
-        showNotification("✅ Profile updated successfully!");
-        resetProfileForm();
-        setIsLoading(false);
-      }
-    } catch {
-      alert("⚠️ Failed to update profile. Try again later.");
-      setIsLoading(false);
-    }
-  };
-
-  const handlePasswordSubmit = async (e) => {
-    e.preventDefault();
-    if (!user) return;
-
-    if (!formData.currentPassword || !formData.newPassword || !formData.confirmPassword) {
-      alert("⚠️ Please fill out all password fields.");
-      return;
-    }
-    if (formData.newPassword !== formData.confirmPassword) {
-      alert("⚠️ Passwords do not match!");
-      return;
-    }
-    if (formData.newPassword.length < 8) {
-      alert("⚠️ Password should be at least 8 characters.");
-      return;
-    }
-
-    setIsLoading(true);
-    try {
-      const credential = EmailAuthProvider.credential(user.email, formData.currentPassword);
-      await reauthenticateWithCredential(user, credential);
-      await updatePassword(user, formData.newPassword);
-      resetPasswordForm();
-      showNotification("✅ Password updated successfully!");
-    } catch (error) {
-      if (error.code === "auth/wrong-password") {
-        alert("❌ Incorrect current password.");
-      } else if (error.code === "auth/requires-recent-login") {
-        alert("⚠️ Please log in again to change your password.");
-      } else {
-        alert("⚠️ Failed to update password. Try again later.");
-      }
+      showNotification("✅ Profile updated successfully!");
+      resetProfileForm();
+    } catch (err) {
+      console.error("Profile update error:", err);
+      alert(`⚠️ Failed to update profile. ${err.message}`);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handlePreferencesSubmit = (e) => {
+  // Image compression
+  const compressImage = (file) => {
+    return new Promise((resolve) => {
+      const canvas = document.createElement("canvas");
+      const ctx = canvas.getContext("2d");
+      const img = new Image();
+
+      img.onload = () => {
+        const MAX_WIDTH = 400;
+        const MAX_HEIGHT = 400;
+        let width = img.width;
+        let height = img.height;
+
+        if (width > height) {
+          if (width > MAX_WIDTH) {
+            height *= MAX_WIDTH / width;
+            width = MAX_WIDTH;
+          }
+        } else {
+          if (height > MAX_HEIGHT) {
+            width *= MAX_HEIGHT / height;
+            height = MAX_HEIGHT;
+          }
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        ctx.drawImage(img, 0, 0, width, height);
+        canvas.toBlob(
+          (blob) => resolve(new File([blob], file.name, { type: "image/jpeg" })),
+          "image/jpeg",
+          0.7
+        );
+      };
+      img.src = URL.createObjectURL(file);
+    });
+  };
+
+  // PASSWORD UPDATE
+  const handlePasswordSubmit = async (e) => {
     e.preventDefault();
-    showNotification("✅ Preferences saved successfully!");
+
+    if (!formData.currentPassword || !formData.newPassword || !formData.confirmPassword) {
+      alert("⚠️ Please fill in all password fields.");
+      return;
+    }
+
+    if (formData.newPassword !== formData.confirmPassword) {
+      alert("❌ New passwords do not match!");
+      return;
+    }
+
+    if (formData.newPassword.length < 6) {
+      alert("⚠️ Password must be at least 6 characters long.");
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+      const credential = EmailAuthProvider.credential(
+        user.email,
+        formData.currentPassword
+      );
+
+      await reauthenticateWithCredential(auth.currentUser, credential);
+      await updatePassword(auth.currentUser, formData.newPassword);
+      showNotification("✅ Password updated successfully!");
+      resetPasswordForm();
+    } catch (error) {
+      console.error("Password update error:", error);
+      alert("❌ Incorrect current password or session expired.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const tabConfig = [
     { key: "profile", label: "Profile", icon: "bi-person-circle", color: "success" },
     { key: "security", label: "Security", icon: "bi-shield-lock", color: "warning" },
-    { key: "preferences", label: "Preferences", icon: "bi-sliders", color: "info" },
   ];
 
+  const getActiveIcon = () => {
+    switch (activeTab) {
+      case "profile":
+        return "bi-person-circle text-success";
+      case "security":
+        return "bi-shield-lock text-warning";
+      default:
+        return "bi-gear text-secondary";
+    }
+  };
+
   return (
-    <div className="d-flex vh-100 bg-light">
+    <div className="d-flex bg-light" style={{ height: "100vh", overflow: "hidden" }}>
       <NavbarUser />
       <div className="flex-grow-1 d-flex flex-column">
         <TopNavbarUser />
 
-        <div className="flex-grow-1 p-4 overflow-auto">
-          <div className="container-fluid">
-            {/* Welcome Header */}
-            <div className="widget welcome-section mb-4 animate__animated animate__fadeInDown">
-              <h2 className="mb-1">
-                <i className="bi bi-gear me-2 text-success"></i>
-                Account Settings
-              </h2>
-              <p className="text-muted mb-0">
-                Manage your profile, security, and preferences for a personalized experience
-              </p>
-            </div>
-
-            {/* KPI Cards */}
-            <div className="row g-3 mb-4">
-              <div className="col-md-3">
-                <div className="widget shadow-sm rounded-3 p-3 bg-white animate__animated animate__fadeInUp">
-                  <div className="d-flex justify-content-between align-items-center mb-2">
-                    <h5 className="fw-bold"><i className="bi bi-person-check me-2 text-success"></i>Profile</h5>
-                    <span className="text-success fs-4 fw-bold">100%</span>
+        <div className="flex-grow-1 p-4" style={{ overflow: "hidden" }}>
+          <div className="container-fluid h-100 d-flex flex-column">
+            {/* Header */}
+            <div className="row mb-3 animate__animated animate__fadeInDown">
+              <div className="col-12">
+                <div className="d-flex align-items-center gap-3">
+                  <div className="bg-success bg-opacity-10 p-3 rounded-3">
+                    <i className="bi bi-gear fs-1 text-success"></i>
                   </div>
-                  <p className="text-muted mb-0">Complete profile setup</p>
-                </div>
-              </div>
-              <div className="col-md-3">
-                <div className="widget shadow-sm rounded-3 p-3 bg-white animate__animated animate__fadeInUp">
-                  <div className="d-flex justify-content-between align-items-center mb-2">
-                    <h5 className="fw-bold"><i className="bi bi-shield-check me-2 text-success"></i>Security</h5>
-                    <span className="text-success fs-4 fw-bold">Strong</span>
+                  <div>
+                    <h1 className="fw-bold mb-1">Account Settings</h1>
+                    <p className="text-muted mb-0">
+                      Manage your profile and security
+                    </p>
                   </div>
-                  <p className="text-muted mb-0">Account protection</p>
-                </div>
-              </div>
-              <div className="col-md-3">
-                <div className="widget shadow-sm rounded-3 p-3 bg-white animate__animated animate__fadeInUp">
-                  <div className="d-flex justify-content-between align-items-center mb-2">
-                    <h5 className="fw-bold"><i className="bi bi-bell me-2 text-warning"></i>Notifications</h5>
-                    <span className="text-warning fs-4 fw-bold">Active</span>
-                  </div>
-                  <p className="text-muted mb-0">Email alerts enabled</p>
-                </div>
-              </div>
-              <div className="col-md-3">
-                <div className="widget shadow-sm rounded-3 p-3 bg-white animate__animated animate__fadeInUp">
-                  <div className="d-flex justify-content-between align-items-center mb-2">
-                    <h5 className="fw-bold"><i className="bi bi-clock me-2 text-info"></i>Last Updated</h5>
-                    <span className="text-info fs-4 fw-bold">Today</span>
-                  </div>
-                  <p className="text-muted mb-0">Recently active</p>
                 </div>
               </div>
             </div>
 
-            {/* Main Grid */}
-            <div className="dashboard-grid">
-              {/* Left Column - Settings Content */}
-              <div>
-                {/* Settings Navigation */}
-                <div className="widget shadow-sm rounded-3 p-3 bg-white mb-4 animate__animated animate__fadeIn">
-                  <div className="widget-header mb-3">
-                    <h5 className="fw-bold"><i className="bi bi-sliders me-2 text-primary"></i>Settings Navigation</h5>
+            <div className="row flex-grow-1">
+              {/* Sidebar */}
+              <div className="col-lg-3 d-flex flex-column">
+                <div className="card border-0 shadow-sm rounded-3 animate__animated animate__fadeInLeft">
+                  <div className="card-body d-flex flex-column p-3">
+                    <div className="text-center mb-4">
+                      <img
+                        src={user?.photoURL || "/default-profile.png"}
+                        alt="User Avatar"
+                        className="rounded-circle shadow mb-2"
+                        style={{
+                          width: "80px",
+                          height: "80px",
+                          objectFit: "cover",
+                          border: "3px solid #10b981",
+                        }}
+                        onError={(e) => {
+                          e.target.src = "/default-profile.png";
+                        }}
+                      />
+                      <h6 className="fw-bold mb-1">{user?.displayName || "User"}</h6>
+                      <p className="text-muted small mb-0">{user?.email}</p>
+                    </div>
+
+                    <div className="nav flex-column">
+                      <h6 className="fw-bold text-muted mb-3">SETTINGS</h6>
+                      {tabConfig.map((tab, index) => (
+                        <button
+                          key={tab.key}
+                          className={`nav-link text-start d-flex align-items-center gap-3 p-3 mb-2 rounded-3 border-0 ${
+                            activeTab === tab.key
+                              ? `bg-${tab.color} bg-opacity-10 text-${tab.color} border-start border-3 border-${tab.color}`
+                              : "text-muted"
+                          } animate__animated animate__fadeIn`}
+                          style={{
+                            animationDelay: `${index * 0.1}s`,
+                            transition: "all 0.3s ease",
+                          }}
+                          onClick={() => setActiveTab(tab.key)}
+                        >
+                          <i className={`${tab.icon} fs-5`}></i>
+                          <span className="fw-semibold">{tab.label}</span>
+                        </button>
+                      ))}
+                    </div>
                   </div>
-                  <div className="d-flex flex-wrap gap-2">
-                    {tabConfig.map((tab, index) => (
-                      <button
-                        key={tab.key}
-                        className={`btn ${activeTab === tab.key ? 'btn-success' : 'btn-outline-success'} animate__animated animate__fadeIn`}
-                        style={{ animationDelay: `${index * 0.1}s` }}
-                        onClick={() => setActiveTab(tab.key)}
+                </div>
+              </div>
+
+              {/* Main Content */}
+              <div className="col-lg-9 d-flex align-items-stretch">
+                <div className="card border-0 shadow-sm rounded-3 w-100 animate__animated animate__fadeInRight">
+                  <div className="card-body p-4">
+                    <div className="mb-4 animate__animated animate__fadeInDown">
+                      <h4 className="fw-bold mb-2">
+                        <i className={`${getActiveIcon()} me-2`}></i>
+                        {tabConfig.find((tab) => tab.key === activeTab)?.label}
+                      </h4>
+                      <p className="text-muted mb-0">
+                        {activeTab === "profile" &&
+                          "Update your personal details and profile picture."}
+                        {activeTab === "security" &&
+                          "Manage your password and account security."}
+                      </p>
+                    </div>
+
+                    {/* Profile Tab */}
+                    {activeTab === "profile" && (
+                      <form
+                        onSubmit={handleProfileSubmit}
+                        className="animate__animated animate__fadeIn"
                       >
-                        <i className={`${tab.icon} me-2`}></i>
-                        {tab.label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Settings Content */}
-                <div className="widget shadow-sm rounded-3 p-3 bg-white animate__animated animate__fadeIn">
-                  <div className="widget-header mb-3">
-                    <h5 className="fw-bold">
-                      <i className={`bi ${
-                        activeTab === 'profile' ? 'bi-person-circle text-success' :
-                        activeTab === 'security' ? 'bi-shield-lock text-warning' :
-                        'bi-sliders text-info'
-                      } me-2`}></i>
-                      {tabConfig.find(tab => tab.key === activeTab)?.label}
-                    </h5>
-                    <small className="text-muted">
-                      {activeTab === 'profile' && 'Update your personal details and profile picture'}
-                      {activeTab === 'security' && 'Manage your password and account security'}
-                      {activeTab === 'preferences' && 'Customize your app experience'}
-                    </small>
-                  </div>
-                  
-                  {/* Profile Tab */}
-                  {activeTab === "profile" && (
-                    <div className="animate__animated animate__fadeIn">
-                      <form onSubmit={handleProfileSubmit}>
                         <div className="row g-3">
                           <div className="col-md-6">
-                            <label className="form-label fw-semibold">First Name</label>
+                            <label className="form-label fw-semibold">
+                              First Name *
+                            </label>
                             <input
                               type="text"
-                              className="form-control border-0 bg-light py-3"
                               name="firstName"
+                              className="form-control"
                               value={formData.firstName}
                               onChange={handleChange}
-                              placeholder="Enter your first name"
                               required
+                              disabled={isLoading}
                             />
                           </div>
                           <div className="col-md-6">
-                            <label className="form-label fw-semibold">Last Name</label>
+                            <label className="form-label fw-semibold">
+                              Last Name *
+                            </label>
                             <input
                               type="text"
-                              className="form-control border-0 bg-light py-3"
                               name="lastName"
+                              className="form-control"
                               value={formData.lastName}
                               onChange={handleChange}
-                              placeholder="Enter your last name"
                               required
+                              disabled={isLoading}
                             />
                           </div>
-
-                          <div className="col-12">
-                            <label className="form-label fw-semibold">Email Address</label>
+                          <div className="col-md-12">
+                            <label className="form-label fw-semibold">
+                              Email
+                            </label>
                             <input
                               type="email"
-                              className="form-control border-0 bg-light py-3"
-                              name="email"
-                              value={formData.email}
-                              onChange={handleChange}
-                              placeholder="Enter your email address"
+                              className="form-control"
+                              value={user?.email || ""}
+                              disabled
+                              style={{
+                                backgroundColor: "#f8f9fa",
+                                cursor: "not-allowed",
+                              }}
                             />
+                            <small className="text-muted">
+                              Email cannot be changed
+                            </small>
                           </div>
-
-                          <div className="col-12">
-                            <label className="form-label fw-semibold">Profile Picture</label>
-                            <div className="border-dashed rounded-3 p-4 text-center bg-light">
-                              <input
-                                type="file"
-                                className="d-none"
-                                id="profilePicture"
-                                name="profilePicture"
-                                accept="image/*"
-                                onChange={handleChange}
-                              />
-                              <label htmlFor="profilePicture" className="cursor-pointer">
-                                <i className="bi bi-cloud-arrow-up fs-1 text-muted mb-2 d-block"></i>
-                                <p className="text-muted mb-2">
-                                  Click to upload or drag and drop
-                                </p>
-                                <small className="text-muted">SVG, PNG, JPG (max. 5MB)</small>
-                              </label>
-                            </div>
-                            {formData.profilePicture && (
-                              <div className="mt-3 text-center">
-                                <img
-                                  src={
-                                    formData.profilePicture instanceof File
-                                      ? URL.createObjectURL(formData.profilePicture)
-                                      : formData.profilePicture
-                                  }
-                                  alt="Preview"
-                                  className="img-thumbnail rounded-circle"
-                                  style={{ width: "120px", height: "120px", objectFit: "cover" }}
-                                />
-                              </div>
-                            )}
+                          <div className="col-md-12">
+                            <label className="form-label fw-semibold">
+                              Profile Picture
+                            </label>
+                            <input
+                              type="file"
+                              name="profilePicture"
+                              accept=".jpg,.jpeg,.png"
+                              className="form-control"
+                              onChange={handleChange}
+                              disabled={isLoading}
+                            />
+                            <small className="text-muted">
+                              JPG/PNG • Max 2MB • Recommended 400x400px
+                            </small>
                           </div>
                         </div>
-
-                        <div className="d-flex justify-content-end gap-3 mt-4 pt-3 border-top">
-                          <button 
-                            type="button" 
+                        <div className="mt-4 d-flex gap-2 justify-content-end">
+                          <button
+                            type="button"
                             className="btn btn-outline-secondary px-4"
                             onClick={resetProfileForm}
+                            disabled={isLoading}
                           >
-                            Cancel
+                            Reset
                           </button>
-                          <button 
-                            type="submit" 
+                          <button
+                            type="submit"
                             className="btn btn-success px-4"
                             disabled={isLoading}
                           >
                             {isLoading ? (
                               <>
-                                <span className="spinner-border spinner-border-sm me-2"></span>
-                                Saving...
+                                <span
+                                  className="spinner-border spinner-border-sm me-2"
+                                  role="status"
+                                ></span>
+                                Uploading...
                               </>
                             ) : (
-                              <>
-                                <i className="bi bi-check-circle me-2"></i>
-                                Save Changes
-                              </>
+                              "Save Changes"
                             )}
                           </button>
                         </div>
                       </form>
-                    </div>
-                  )}
+                    )}
 
-                  {/* Security Tab */}
-                  {activeTab === "security" && (
-                    <div className="animate__animated animate__fadeIn">
-                      <form onSubmit={handlePasswordSubmit}>
+                    {/* Security Tab */}
+                    {activeTab === "security" && (
+                      <form
+                        onSubmit={handlePasswordSubmit}
+                        className="animate__animated animate__fadeIn"
+                      >
                         <div className="row g-3">
-                          <div className="col-12">
-                            <label className="form-label fw-semibold">Current Password</label>
-                            <div className="input-group">
-                              <input
-                                type={formData.showCurrent ? "text" : "password"}
-                                className="form-control border-0 bg-light py-3"
-                                name="currentPassword"
-                                value={formData.currentPassword}
-                                onChange={handleChange}
-                                placeholder="Enter current password"
-                              />
-                              <button
-                                type="button"
-                                className="btn btn-outline-secondary border-0 bg-light"
-                                onClick={() => setFormData(prev => ({ ...prev, showCurrent: !prev.showCurrent }))}
-                              >
-                                <i className={`bi ${formData.showCurrent ? "bi-eye-slash" : "bi-eye"}`}></i>
-                              </button>
-                            </div>
+                          <div className="col-md-12">
+                            <label className="form-label fw-semibold">
+                              Current Password *
+                            </label>
+                            <input
+                              type="password"
+                              name="currentPassword"
+                              className="form-control"
+                              value={formData.currentPassword}
+                              onChange={handleChange}
+                              required
+                            />
                           </div>
-
-                          <div className="col-12">
-                            <label className="form-label fw-semibold">New Password</label>
-                            <div className="input-group">
-                              <input
-                                type={formData.showNew ? "text" : "password"}
-                                className="form-control border-0 bg-light py-3"
-                                name="newPassword"
-                                value={formData.newPassword}
-                                onChange={handleChange}
-                                placeholder="Enter new password"
-                              />
-                              <button
-                                type="button"
-                                className="btn btn-outline-secondary border-0 bg-light"
-                                onClick={() => setFormData(prev => ({ ...prev, showNew: !prev.showNew }))}
-                              >
-                                <i className={`bi ${formData.showNew ? "bi-eye-slash" : "bi-eye"}`}></i>
-                              </button>
-                            </div>
-                            <small className="text-muted">Must be at least 8 characters long</small>
+                          <div className="col-md-6">
+                            <label className="form-label fw-semibold">
+                              New Password *
+                            </label>
+                            <input
+                              type="password"
+                              name="newPassword"
+                              className="form-control"
+                              value={formData.newPassword}
+                              onChange={handleChange}
+                              required
+                            />
                           </div>
-
-                          <div className="col-12">
-                            <label className="form-label fw-semibold">Confirm Password</label>
-                            <div className="input-group">
-                              <input
-                                type={formData.showConfirm ? "text" : "password"}
-                                className="form-control border-0 bg-light py-3"
-                                name="confirmPassword"
-                                value={formData.confirmPassword}
-                                onChange={handleChange}
-                                placeholder="Confirm new password"
-                              />
-                              <button
-                                type="button"
-                                className="btn btn-outline-secondary border-0 bg-light"
-                                onClick={() => setFormData(prev => ({ ...prev, showConfirm: !prev.showConfirm }))}
-                              >
-                                <i className={`bi ${formData.showConfirm ? "bi-eye-slash" : "bi-eye"}`}></i>
-                              </button>
-                            </div>
+                          <div className="col-md-6">
+                            <label className="form-label fw-semibold">
+                              Confirm Password *
+                            </label>
+                            <input
+                              type="password"
+                              name="confirmPassword"
+                              className="form-control"
+                              value={formData.confirmPassword}
+                              onChange={handleChange}
+                              required
+                            />
                           </div>
                         </div>
 
-                        <div className="d-flex justify-content-end gap-3 mt-4 pt-3 border-top">
-                          <button 
-                            type="button" 
+                        <div className="mt-4 d-flex gap-2 justify-content-end">
+                          <button
+                            type="button"
                             className="btn btn-outline-secondary px-4"
                             onClick={resetPasswordForm}
                             disabled={isLoading}
                           >
-                            Cancel
+                            Reset
                           </button>
-                          <button 
-                            type="submit" 
+                          <button
+                            type="submit"
                             className="btn btn-warning px-4"
                             disabled={isLoading}
                           >
                             {isLoading ? (
                               <>
-                                <span className="spinner-border spinner-border-sm me-2"></span>
+                                <span
+                                  className="spinner-border spinner-border-sm me-2"
+                                  role="status"
+                                ></span>
                                 Updating...
                               </>
                             ) : (
-                              <>
-                                <i className="bi bi-shield-check me-2"></i>
-                                Update Password
-                              </>
+                              "Update Password"
                             )}
                           </button>
                         </div>
                       </form>
-                    </div>
-                  )}
-
-                  {/* Preferences Tab */}
-                  {activeTab === "preferences" && (
-                    <div className="animate__animated animate__fadeIn">
-                      <form onSubmit={handlePreferencesSubmit}>
-                        <div className="row g-4">
-                          <div className="col-12">
-                            <div className="card border-0 bg-light">
-                              <div className="card-body">
-                                <div className="form-check form-switch d-flex align-items-center justify-content-between">
-                                  <div>
-                                    <label className="form-check-label fw-semibold" htmlFor="darkMode">
-                                      Dark Mode
-                                    </label>
-                                    <p className="text-muted mb-0 small">Switch to dark theme for better visibility at night</p>
-                                  </div>
-                                  <input
-                                    className="form-check-input"
-                                    type="checkbox"
-                                    id="darkMode"
-                                    name="darkMode"
-                                    checked={formData.darkMode}
-                                    onChange={handleChange}
-                                    style={{ transform: "scale(1.5)" }}
-                                  />
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-
-                          <div className="col-12">
-                            <div className="card border-0 bg-light">
-                              <div className="card-body">
-                                <div className="form-check form-switch d-flex align-items-center justify-content-between">
-                                  <div>
-                                    <label className="form-check-label fw-semibold" htmlFor="emailNotifications">
-                                      Email Notifications
-                                    </label>
-                                    <p className="text-muted mb-0 small">Receive updates and alerts via email</p>
-                                  </div>
-                                  <input
-                                    className="form-check-input"
-                                    type="checkbox"
-                                    id="emailNotifications"
-                                    name="emailNotifications"
-                                    checked={formData.emailNotifications}
-                                    onChange={handleChange}
-                                    style={{ transform: "scale(1.5)" }}
-                                  />
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="d-flex justify-content-end gap-3 mt-4 pt-3 border-top">
-                          <button type="submit" className="btn btn-info px-4">
-                            <i className="bi bi-check-circle me-2"></i>
-                            Save Preferences
-                          </button>
-                        </div>
-                      </form>
-                    </div>
-                  )}
+                    )}
+                  </div>
                 </div>
               </div>
-
-              {/* Right Column */}
-              <aside className="right-column">
-                {/* User Profile Card */}
-                <div className="widget shadow-sm rounded-3 p-3 bg-white mb-4 animate__animated animate__fadeIn">
-                  <div className="widget-header mb-3">
-                    <h5 className="fw-bold"><i className="bi bi-person-badge me-2 text-info"></i>Your Profile</h5>
-                  </div>
-                  <div className="text-center">
-                    <img
-                      src={user?.photoURL || "/images/default-avatar.png"}
-                      alt="User Avatar"
-                      className="rounded-circle shadow mb-3"
-                      style={{ 
-                        width: "80px", 
-                        height: "80px", 
-                        objectFit: "cover",
-                        border: "3px solid #10b981"
-                      }}
-                    />
-                    <h6 className="fw-bold mb-1">{user?.displayName || "User"}</h6>
-                    <p className="text-muted small mb-3">{user?.email}</p>
-                    <div className="d-grid gap-2">
-                      <button className="btn btn-outline-success btn-sm">
-                        <i className="bi bi-pencil me-1"></i>
-                        Edit Profile
-                      </button>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Quick Actions */}
-                <div className="widget shadow-sm rounded-3 p-3 bg-white animate__animated animate__fadeIn">
-                  <div className="widget-header mb-3">
-                    <h5 className="fw-bold"><i className="bi bi-lightning me-2 text-warning"></i>Quick Actions</h5>
-                  </div>
-                  <div className="actions-list">
-                    <button className="btn btn-outline-primary w-100 mb-2 text-start">
-                      <i className="bi bi-download me-2"></i>
-                      Export Data
-                    </button>
-                    <button className="btn btn-outline-success w-100 mb-2 text-start">
-                      <i className="bi bi-shield-check me-2"></i>
-                      Privacy Settings
-                    </button>
-                    <button className="btn btn-outline-info w-100 text-start">
-                      <i className="bi bi-question-circle me-2"></i>
-                      Get Help
-                    </button>
-                  </div>
-                </div>
-              </aside>
             </div>
           </div>
         </div>
 
-        {/* Success Notification */}
+        {/* Popup Notification */}
         {showPopup && (
           <div
             className="position-fixed top-0 start-50 translate-middle-x mt-5 animate__animated animate__fadeInDown"

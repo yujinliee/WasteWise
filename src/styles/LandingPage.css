@@ -355,6 +355,34 @@ body {
   opacity: 0.9;
 }
 
+.feature-card {
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.feature-card:hover {
+  transform: translateY(-10px);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+}
+
+.feature-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 4px; /* vertical line thickness */
+  height: 100%;
+  background: linear-gradient(to bottom, #28a745, transparent);
+  transform: translateX(-50%) scaleY(0);
+  transition: transform 0.5s ease;
+}
+
+.feature-card:hover::before {
+  transform: translateX(-50%) scaleY(1);
+}
+
+
 /* Contact */
 .contact-section {
   background: #f9fafb;

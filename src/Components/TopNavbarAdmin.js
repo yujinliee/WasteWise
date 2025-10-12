@@ -7,33 +7,9 @@ import "bootstrap/dist/css/bootstrap.min.css";
 const TopNavbarAdmin = () => {
   const [admin, setAdmin] = useState(null);
   const [showProfile, setShowProfile] = useState(false);
-  const [showNotif, setShowNotif] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
   const profileRef = useRef(null);
-  const notifRef = useRef(null);
   const navigate = useNavigate();
-
-  // local notifications for admin
-  const [notifications, setNotifications] = useState([
-    {
-      id: 1,
-      title: "System Maintenance",
-      message: "Scheduled maintenance will occur at 10:00 PM tonight.",
-      category: "system",
-      date: "2025-09-23",
-      read: false,
-    },
-    {
-      id: 2,
-      title: "New User Registered",
-      message: "A new user has signed up using Google.",
-      category: "account",
-      date: "2025-09-22",
-      read: true,
-    },
-  ]);
-
-  const [expandedId, setExpandedId] = useState(null);
-  const [showAllNotifications, setShowAllNotifications] = useState(false);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentAdmin) => {
@@ -41,16 +17,14 @@ const TopNavbarAdmin = () => {
     });
 
     const onDocClick = (e) => {
-      if (profileRef.current && !profileRef.current.contains(e.target))
+      if (profileRef.current && !profileRef.current.contains(e.target)) {
         setShowProfile(false);
-      if (notifRef.current && !notifRef.current.contains(e.target))
-        setShowNotif(false);
+      }
     };
 
     const onEsc = (e) => {
       if (e.key === "Escape") {
         setShowProfile(false);
-        setShowNotif(false);
       }
     };
 
@@ -73,193 +47,47 @@ const TopNavbarAdmin = () => {
     }
   };
 
-  const markAsRead = (id) => {
-    setNotifications((prev) =>
-      prev.map((n) => (n.id === id ? { ...n, read: true } : n))
-    );
-  };
-
-  const deleteNotification = (id) => {
-    if (window.confirm("Delete this notification?")) {
-      setNotifications((prev) => prev.filter((n) => n.id !== id));
-    }
+  const handleSearch = (e) => {
+    e.preventDefault();
+    console.log("Admin searching for:", searchQuery);
   };
 
   return (
     <nav
-      className="navbar navbar-expand-lg px-4 py-3"
+      className="navbar navbar-expand-lg border-bottom px-4 py-3"
       style={{
-        background: "#f0f2f5",
+        background: "#f8f8f8",
+        color: "#0D4715",
         minHeight: 64,
       }}
     >
       <div className="container-fluid">
-
-        <div className="d-flex align-items-center ms-auto gap-3 position-relative">
-          {/* Notification Bell */}
-          <div ref={notifRef} style={{ position: "relative" }}>
-            <button
-              className="btn position-relative"
-              style={{
-                background: "#0D4715",
-                color: "#fff",
-                borderRadius: "50%",
-                width: 44,
-                height: 44,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-              onClick={(e) => {
-                e.stopPropagation();
-                setShowNotif((s) => !s);
-                setShowProfile(false);
-              }}
-              aria-label="Notifications"
-            >
-              <i className="bi bi-bell fs-5"></i>
-              <span
-                className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
-                style={{ fontSize: 11 }}
-              >
-                {notifications.length}
+        {/* Search Bar */}
+        <div
+          className="d-flex align-items-center"
+          style={{ flex: 1, maxWidth: 400, margin: "0 2rem" }}
+        >
+          <form className="w-100" onSubmit={handleSearch}>
+            <div className="input-group">
+              <span className="input-group-text bg-white border-end-0">
+                <i className="bi bi-search text-muted"></i>
               </span>
-            </button>
+              <input
+                type="text"
+                className="form-control border-start-0"
+                placeholder="Search users, logs, reports..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                style={{ borderColor: "#e8f5e8" }}
+              />
+            </div>
+          </form>
+        </div>
 
-            {showNotif && (
-              <div
-                style={{
-                  position: "absolute",
-                  right: 0,
-                  top: 52,
-                  width: 340,
-                  maxWidth: "90vw",
-                  zIndex: 1200,
-                }}
-              >
-                <div className="card shadow-sm">
-                  <div className="card-body p-2">
-                    <div className="d-flex justify-content-between align-items-center px-2 mb-2">
-                      <h6 className="mb-0">Admin Notifications</h6>
-                      <small className="text-muted">
-                        {notifications.length} total
-                      </small>
-                    </div>
-                    <div style={{ maxHeight: 320, overflow: "auto" }}>
-                      {notifications.length === 0 && (
-                        <div className="text-center p-3 text-muted">
-                          No notifications
-                        </div>
-                      )}
-                      {notifications.map((n) => (
-                        <div
-                          key={n.id}
-                          className={`d-flex px-2 py-2 ${
-                            n.read ? "bg-light" : "bg-white"
-                          }`}
-                          onClick={() =>
-                            setExpandedId(expandedId === n.id ? null : n.id)
-                          }
-                          style={{
-                            borderBottom: "1px solid #eef3ef",
-                            gap: 8,
-                            alignItems: "flex-start",
-                            cursor: "pointer",
-                          }}
-                        >
-                          {/* left indicator */}
-                          <div
-                            style={{
-                              width: 36,
-                              display: "flex",
-                              alignItems: "center",
-                              justifyContent: "center",
-                            }}
-                          >
-                            <span
-                              style={{
-                                width: 10,
-                                height: 10,
-                                borderRadius: "50%",
-                                background: n.read ? "#cfd8d2" : "#0D4715",
-                                display: "inline-block",
-                              }}
-                            />
-                          </div>
-
-                          <div style={{ flex: 1 }}>
-                            <div className="d-flex justify-content-between">
-                              <div className="fw-semibold">{n.title}</div>
-                              <div className="text-muted small">{n.date}</div>
-                            </div>
-                            <div className="text-muted small">
-                              {n.category}
-                            </div>
-                            {(expandedId === n.id || showAllNotifications) && (
-                              <div className="mt-2 text-muted">{n.message}</div>
-                            )}
-                          </div>
-
-                          <div
-                            style={{
-                              display: "flex",
-                              flexDirection: "column",
-                              alignItems: "flex-end",
-                              gap: 6,
-                              minWidth: 88,
-                              alignSelf: "flex-start",
-                            }}
-                          >
-                            {!n.read && (
-                              <button
-                                className="btn btn-sm btn-outline-success"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  markAsRead(n.id);
-                                }}
-                                style={{ padding: "4px 8px" }}
-                                aria-label={`Mark notification ${n.id} as read`}
-                              >
-                                Mark
-                              </button>
-                            )}
-                            <button
-                              className="btn btn-sm btn-outline-danger"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                deleteNotification(n.id);
-                              }}
-                              style={{ padding: "4px 8px" }}
-                              aria-label={`Delete notification ${n.id}`}
-                            >
-                              Delete
-                            </button>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                    <div className="text-center mt-2">
-                      <button
-                        className="btn btn-sm btn-outline-secondary"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setShowAllNotifications((s) => !s);
-                        }}
-                      >
-                        {showAllNotifications ? "Collapse" : "View all"}
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Profile Dropdown */}
-          <div
-            ref={profileRef}
-            style={{ position: "relative", display: "inline-block" }}
-          >
+        {/* Profile Dropdown */}
+        <div ref={profileRef} style={{ position: "relative", display: "inline-block" }}>
+          <div className="d-flex align-items-center gap-2" style={{ position: "relative" }}>
+            {/* Profile Image */}
             <img
               src={admin?.photoURL || "/default-profile.png"}
               className="rounded-circle shadow-sm"
@@ -273,62 +101,78 @@ const TopNavbarAdmin = () => {
               onClick={(e) => {
                 e.stopPropagation();
                 setShowProfile((p) => !p);
-                setShowNotif(false);
               }}
-              id="profileDropdown"
-              aria-expanded={showProfile}
-              alt="Admin Profile"
+              alt="Profile"
             />
-
-            {showProfile && (
-              <ul
-                className="dropdown-menu dropdown-menu-end show"
-                aria-labelledby="profileDropdown"
-                style={{
-                  position: "absolute",
-                  right: 0,
-                  top: 50,
-                  minWidth: "170px",
-                  boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
-                  zIndex: 1000,
-                }}
-              >
-                <li>
-                  <button
-                    className="dropdown-item"
-                    onClick={() => {
-                      navigate("/admin/settings");
-                      setShowProfile(false);
-                    }}
-                  >
-                    Settings
-                  </button>
-                </li>
-                <li>
-                  <button
-                    className="dropdown-item"
-                    onClick={() => {
-                      navigate("/admin/users");
-                      setShowProfile(false);
-                    }}
-                  >
-                    Manage Users
-                  </button>
-                </li>
-                <li>
-                  <hr className="dropdown-divider" />
-                </li>
-                <li>
-                  <button
-                    className="dropdown-item text-danger fw-bold"
-                    onClick={handleSignOut}
-                  >
-                    Sign out
-                  </button>
-                </li>
-              </ul>
-            )}
           </div>
+
+          {showProfile && (
+            <ul
+              className="dropdown-menu dropdown-menu-end show"
+              style={{
+                position: "absolute",
+                right: 0,
+                top: 60,
+                minWidth: "200px",
+                boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+                border: "1px solid rgba(13, 71, 21, 0.1)",
+                zIndex: 1000,
+              }}
+            >
+              <li className="dropdown-header text-muted small">Signed in as Admin</li>
+              <li>
+                <hr className="dropdown-divider my-1" />
+              </li>
+              <li>
+                <button
+                  className="dropdown-item d-flex align-items-center"
+                  onClick={() => {
+                    navigate("/admin/settings");
+                    setShowProfile(false);
+                  }}
+                >
+                  <i className="bi bi-gear me-2"></i>
+                  Admin Settings
+                </button>
+              </li>
+              <li>
+                <button
+                  className="dropdown-item d-flex align-items-center"
+                  onClick={() => {
+                    navigate("/admin/users");
+                    setShowProfile(false);
+                  }}
+                >
+                  <i className="bi bi-people me-2"></i>
+                  Manage Users
+                </button>
+              </li>
+              <li>
+                <button
+                  className="dropdown-item d-flex align-items-center"
+                  onClick={() => {
+                    navigate("/admin/reports");
+                    setShowProfile(false);
+                  }}
+                >
+                  <i className="bi bi-graph-up me-2"></i>
+                  View Reports
+                </button>
+              </li>
+              <li>
+                <hr className="dropdown-divider my-1" />
+              </li>
+              <li>
+                <button
+                  className="dropdown-item d-flex align-items-center text-danger fw-bold"
+                  onClick={handleSignOut}
+                >
+                  <i className="bi bi-box-arrow-right me-2"></i>
+                  Sign Out
+                </button>
+              </li>
+            </ul>
+          )}
         </div>
       </div>
     </nav>

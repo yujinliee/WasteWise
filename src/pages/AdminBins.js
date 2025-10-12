@@ -1,124 +1,148 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import NavbarAdmin from "../Components/NavbarAdmin";
 import TopNavbarAdmin from "../Components/TopNavbarAdmin";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap/dist/js/bootstrap.bundle.min.js";
+import "animate.css";
+import "bootstrap-icons/font/bootstrap-icons.css";
+import { db } from "../Components/firebase";
+import {
+  collection,
+  addDoc,
+  onSnapshot,
+  deleteDoc,
+  updateDoc,
+  doc,
+} from "firebase/firestore";
 
 const AdminBins = () => {
-  const [bins, setBins] = useState([
-    { id: 1, name: "Bin A", location: "Building 1", isFull: false, isArchived: false },
-    { id: 2, name: "Bin B", location: "Building 2", isFull: true, isArchived: false },
-    { id: 3, name: "Bin C", location: "Building 3", isFull: false, isArchived: true },
-  ]);
-
-  const [showModal, setShowModal] = useState(false);
+  const [bins, setBins] = useState([]);
   const [newBin, setNewBin] = useState({ name: "", location: "" });
+  const [showModal, setShowModal] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [binToDelete, setBinToDelete] = useState(null);
   const [showArchiveConfirm, setShowArchiveConfirm] = useState(false);
   const [binToArchive, setBinToArchive] = useState(null);
   const [activeTab, setActiveTab] = useState("active");
+  const [toastMessage, setToastMessage] = useState("");
 
-  // Filter bins based on active tab
-  const filteredBins = bins.filter((bin) =>
-    activeTab === "active" ? !bin.isArchived : bin.isArchived
-  );
+  // 🔥 Fetch bins in real-time
+  useEffect(() => {
+    const unsubscribe = onSnapshot(collection(db, "bins"), (snapshot) => {
+      const binData = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+      setBins(binData);
+    });
+    return unsubscribe;
+  }, []);
 
-  // Add Bin
-  const handleAddBin = (e) => {
-    e.preventDefault();
-    if (!newBin.name || !newBin.location) return;
-    const newId = bins.length > 0 ? Math.max(...bins.map((b) => b.id)) + 1 : 1;
-    const bin = {
-      id: newId,
+  const handleAddBin = async (e) => {
+  e.preventDefault();
+  if (!newBin.name || !newBin.location) return;
+
+  try {
+    await addDoc(collection(db, "bins"), {
       name: newBin.name,
       location: newBin.location,
       isFull: false,
       isArchived: false,
-    };
-    setBins([...bins, bin]);
-    setNewBin({ name: "", location: "" });
-    setShowModal(false);
-  };
+    });
 
-  // Delete Bin
+    setNewBin({ name: "", location: "" });
+    setShowModal(false); // just close modal
+    // NO page reload!
+  } catch (err) {
+    console.error("Error adding bin: ", err);
+  }
+};
+
+
+  // ✅ Delete bin
   const handleDeleteClick = (bin) => {
     setBinToDelete(bin);
     setShowDeleteConfirm(true);
   };
 
-  const confirmDelete = () => {
-    setBins(bins.filter((b) => b.id !== binToDelete.id));
+  const confirmDelete = async () => {
+    await deleteDoc(doc(db, "bins", binToDelete.id));
     setShowDeleteConfirm(false);
-    setBinToDelete(null);
+    showToast("🗑️ Bin deleted permanently!");
   };
 
-  // Archive Bin
+  // ✅ Archive / Restore bin
   const handleArchiveClick = (bin) => {
     setBinToArchive(bin);
     setShowArchiveConfirm(true);
   };
 
-  const confirmArchive = () => {
-    setBins(
-      bins.map((b) =>
-        b.id === binToArchive.id ? { ...b, isArchived: !b.isArchived } : b
-      )
-    );
+  const confirmArchive = async () => {
+    const updatedStatus = !binToArchive.isArchived;
+    await updateDoc(doc(db, "bins", binToArchive.id), {
+      isArchived: updatedStatus,
+    });
     setShowArchiveConfirm(false);
-    setBinToArchive(null);
+    showToast(
+      updatedStatus ? "📦 Bin archived!" : "♻️ Bin restored successfully!"
+    );
   };
 
-  const handleRestoreClick = (bin) => {
-    setBins(bins.map((b) => (b.id === bin.id ? { ...b, isArchived: false } : b)));
+  const filteredBins = bins.filter((bin) =>
+    activeTab === "active" ? !bin.isArchived : bin.isArchived
+  );
+
+  // ✅ Temporary Toast Notification
+  const showToast = (msg) => {
+    setToastMessage(msg);
+    setTimeout(() => setToastMessage(""), 3000);
   };
 
   return (
     <div className="d-flex vh-100 bg-light">
-      {/* Sidebar */}
       <NavbarAdmin />
-
-      {/* Main Section */}
       <div className="flex-grow-1 d-flex flex-column">
-        {/* Fixed Top Navbar */}
-        <div className="bg-white shadow-sm sticky-top">
-          <TopNavbarAdmin />
-        </div>
+        <TopNavbarAdmin />
 
-        {/* Grayish Layer */}
+        {/* Main */}
         <div
-          className="flex-grow-1 p-4"
-          style={{
-            backgroundColor: "#f0f2f5",
-            overflow: "hidden", // prevents background scroll
-          }}
+          className="flex-grow-1 p-4 overflow-auto"
+          style={{ backgroundColor: "#f3f4f6" }}
         >
-          {/* Scrollable White Section */}
-          <div
-            className="bg-white rounded shadow p-4"
-            style={{
-              height: "100%",
-              overflowY: "auto", // only this part scrolls
-            }}
-          >
+          <div className="container-fluid">
             {/* Header */}
-            <div className="d-flex justify-content-between align-items-center mb-4">
+            <div
+              className="widget mb-4 rounded-3 shadow-sm p-4 animate__animated animate__fadeInDown text-white"
+              style={{
+                background: "linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+              }}
+            >
               <div>
-                <h2 className="mb-1">Bins Management 🗑️</h2>
-                <p className="text-muted mb-0">
-                  Manage and monitor all waste bins across all buildings.
+                <h3 className="fw-bold mb-1">Bin Management 🗑️</h3>
+                <p className="text-light mb-0">
+                  Monitor, archive, and manage campus waste bins efficiently.
                 </p>
               </div>
-              <button className="btn btn-success" onClick={() => setShowModal(true)}>
-                <i className="bi bi-plus-circle me-2"></i>Add New Bin
+              <button
+                className="btn btn-light text-primary fw-semibold shadow-sm"
+                onClick={() => setShowModal(true)}
+              >
+                <i className="bi bi-plus-circle me-2"></i>Add Bin
               </button>
             </div>
 
             {/* Tabs */}
-            <ul className="nav nav-tabs mb-4">
-              <li className="nav-item">
+            <ul className="nav nav-pills mb-4">
+              <li className="nav-item me-2">
                 <button
-                  className={`nav-link ${activeTab === "active" ? "active" : ""}`}
+                  className={`nav-link ${
+                    activeTab === "active"
+                      ? "active bg-primary text-white"
+                      : "text-primary border border-primary"
+                  }`}
                   onClick={() => setActiveTab("active")}
                 >
                   <i className="bi bi-list-check me-2"></i>
@@ -127,7 +151,11 @@ const AdminBins = () => {
               </li>
               <li className="nav-item">
                 <button
-                  className={`nav-link ${activeTab === "archived" ? "active" : ""}`}
+                  className={`nav-link ${
+                    activeTab === "archived"
+                      ? "active bg-secondary text-white"
+                      : "text-secondary border border-secondary"
+                  }`}
                   onClick={() => setActiveTab("archived")}
                 >
                   <i className="bi bi-archive me-2"></i>
@@ -137,57 +165,59 @@ const AdminBins = () => {
             </ul>
 
             {/* Table */}
-            <div className="card bg-light shadow-sm border-0">
+            <div className="card border-0 shadow-sm rounded-3 animate__animated animate__fadeInUp">
               <div className="card-body">
                 <div className="table-responsive">
                   <table className="table table-hover align-middle">
                     <thead className="table-light">
                       <tr>
-                        <th>ID</th>
-                        <th>Bin Name</th>
+                        <th>Name</th>
                         <th>Location</th>
                         <th>Status</th>
-                        <th>Actions</th>
+                        <th className="text-center">Actions</th>
                       </tr>
                     </thead>
                     <tbody>
                       {filteredBins.length > 0 ? (
                         filteredBins.map((bin) => (
                           <tr key={bin.id}>
-                            <td>#{bin.id}</td>
-                            <td>{bin.name}</td>
+                            <td className="fw-semibold">{bin.name}</td>
                             <td>{bin.location}</td>
                             <td>
                               <span
                                 className={`badge ${
-                                  bin.isFull ? "bg-warning" : "bg-success"
+                                  bin.isFull
+                                    ? "bg-warning text-dark"
+                                    : "bg-success"
                                 }`}
                               >
                                 {bin.isFull ? "Full" : "Not Full"}
                               </span>
                             </td>
-                            <td>
-                              <div className="d-flex flex-wrap gap-2">
+                            <td className="align-middle text-center">
+                              <div className="d-flex justify-content-center align-items-center flex-wrap gap-2">
                                 {activeTab === "active" ? (
                                   <>
                                     <button
                                       className="btn btn-outline-warning btn-sm"
                                       onClick={() => handleArchiveClick(bin)}
                                     >
-                                      <i className="bi bi-archive me-1"></i>Archive
+                                      <i className="bi bi-archive me-1"></i>
+                                      Archive
                                     </button>
                                     <button
                                       className="btn btn-outline-danger btn-sm"
                                       onClick={() => handleDeleteClick(bin)}
                                     >
-                                      <i className="bi bi-trash me-1"></i>Delete
+                                      <i className="bi bi-trash me-1"></i>
+                                      Delete
                                     </button>
                                   </>
                                 ) : (
                                   <>
                                     <button
                                       className="btn btn-outline-success btn-sm"
-                                      onClick={() => handleRestoreClick(bin)}
+                                      onClick={() => handleArchiveClick(bin)}
                                     >
                                       <i className="bi bi-arrow-counterclockwise me-1"></i>
                                       Restore
@@ -196,7 +226,8 @@ const AdminBins = () => {
                                       className="btn btn-outline-danger btn-sm"
                                       onClick={() => handleDeleteClick(bin)}
                                     >
-                                      <i className="bi bi-trash me-1"></i>Delete
+                                      <i className="bi bi-trash me-1"></i>
+                                      Delete
                                     </button>
                                   </>
                                 )}
@@ -206,11 +237,12 @@ const AdminBins = () => {
                         ))
                       ) : (
                         <tr>
-                          <td colSpan="5" className="text-center py-4">
-                            <div className="text-muted">
-                              <i className="bi bi-inbox display-4 d-block mb-2"></i>
-                              No {activeTab === "active" ? "active" : "archived"} bins found
-                            </div>
+                          <td colSpan="4" className="text-center py-5">
+                            <i className="bi bi-inbox display-5 text-muted d-block mb-2"></i>
+                            <p className="text-muted mb-0">
+                              No {activeTab === "active" ? "active" : "archived"} bins
+                              found.
+                            </p>
                           </td>
                         </tr>
                       )}
@@ -222,69 +254,142 @@ const AdminBins = () => {
           </div>
         </div>
 
-        {/* Add Bin Modal */}
-        {showModal && (
-          <div
-            className="position-fixed top-0 start-0 w-100 h-100 bg-dark bg-opacity-50 d-flex align-items-center justify-content-center"
-            style={{ zIndex: 1050 }}
-          >
-            <div className="bg-white p-4 rounded shadow" style={{ width: "400px" }}>
-              <h5 className="mb-3">Add New Bin</h5>
+        {/* ✅ Add Bin Modal */}
+        <div
+          className={`modal fade ${showModal ? "show d-block" : ""}`}
+          tabIndex="-1"
+          role="dialog"
+          style={{
+            backgroundColor: showModal ? "rgba(0,0,0,0.5)" : "transparent",
+            backdropFilter: showModal ? "blur(3px)" : "none",
+          }}
+        >
+          <div className="modal-dialog modal-dialog-centered" role="document">
+            <div className="modal-content shadow-lg border-0 rounded-4 animate__animated animate__zoomIn">
+              <div className="modal-header border-0">
+                <h5 className="modal-title fw-bold text-primary">
+                  <i className="bi bi-plus-circle me-2"></i>Add New Bin
+                </h5>
+                <button
+                  type="button"
+                  className="btn-close"
+                  onClick={() => setShowModal(false)}
+                ></button>
+              </div>
               <form onSubmit={handleAddBin}>
-                <div className="mb-3">
-                  <label className="form-label">Bin Name</label>
-                  <input
-                    type="text"
-                    className="form-control"
-                    placeholder="Enter bin name"
-                    value={newBin.name}
-                    onChange={(e) => setNewBin({ ...newBin, name: e.target.value })}
-                    required
-                  />
+                <div className="modal-body">
+                  <div className="mb-3">
+                    <label className="form-label fw-semibold">Bin Name</label>
+                    <input
+                      type="text"
+                      className={`form-control ${
+                        bins.some(
+                          (b) =>
+                            b.name.toLowerCase() ===
+                            newBin.name.toLowerCase()
+                        )
+                          ? "is-invalid"
+                          : ""
+                      }`}
+                      placeholder="Enter bin name"
+                      value={newBin.name}
+                      onChange={(e) =>
+                        setNewBin({ ...newBin, name: e.target.value })
+                      }
+                      required
+                    />
+                    {bins.some(
+                      (b) =>
+                        b.name.toLowerCase() === newBin.name.toLowerCase()
+                    ) && (
+                      <div className="text-danger small mt-1">
+                        A bin with this name already exists.
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="mb-3">
+                    <label className="form-label fw-semibold">Location</label>
+                    <select
+                      className="form-select"
+                      value={newBin.location}
+                      onChange={(e) =>
+                        setNewBin({ ...newBin, location: e.target.value })
+                      }
+                      required
+                    >
+                      <option value="">Select location</option>
+                      <option>4th Floor</option>
+                      <option>5th Floor</option>
+                      <option>4th Floor - Men’s CR</option>
+                      <option>4th Floor - Women’s CR</option>
+                      <option>5th Floor - Men’s CR</option>
+                      <option>5th Floor - Women’s CR</option>
+                      <option>Canteen 1</option>
+                      <option>Canteen 2</option>
+                    </select>
+                  </div>
                 </div>
-                <div className="mb-3">
-                  <label className="form-label">Location</label>
-                  <input
-                    type="text"
-                    className="form-control"
-                    placeholder="Enter location"
-                    value={newBin.location}
-                    onChange={(e) => setNewBin({ ...newBin, location: e.target.value })}
-                    required
-                  />
-                </div>
-                <div className="text-end">
+                <div className="modal-footer border-0">
                   <button
                     type="button"
-                    className="btn btn-secondary me-2"
+                    className="btn btn-outline-secondary"
                     onClick={() => setShowModal(false)}
                   >
                     Cancel
                   </button>
-                  <button type="submit" className="btn btn-success">
+                  <button
+                    type="submit"
+                    className="btn btn-primary"
+                    disabled={bins.some(
+                      (b) =>
+                        b.name.toLowerCase() === newBin.name.toLowerCase()
+                    )}
+                  >
                     Save Bin
                   </button>
                 </div>
               </form>
             </div>
           </div>
-        )}
+        </div>
 
-        {/* Delete Confirmation Modal */}
-        {showDeleteConfirm && (
-          <div
-            className="position-fixed top-0 start-0 w-100 h-100 bg-dark bg-opacity-50 d-flex align-items-center justify-content-center"
-            style={{ zIndex: 1050 }}
-          >
-            <div className="bg-white p-4 rounded shadow" style={{ width: "400px" }}>
-              <h5 className="text-danger mb-3">Confirm Delete</h5>
-              <p>
-                Are you sure you want to delete <strong>{binToDelete?.name}</strong>?
-                This action cannot be undone.
-              </p>
-              <div className="text-end">
+        {/* ✅ Delete Confirmation Modal */}
+        <div
+          className={`modal fade ${showDeleteConfirm ? "show d-block" : ""}`}
+          tabIndex="-1"
+          role="dialog"
+          style={{
+            backgroundColor: showDeleteConfirm
+              ? "rgba(0,0,0,0.5)"
+              : "transparent",
+            backdropFilter: showDeleteConfirm ? "blur(3px)" : "none",
+          }}
+        >
+          <div className="modal-dialog modal-dialog-centered" role="document">
+            <div className="modal-content shadow-lg border-0 rounded-4 animate__animated animate__zoomIn">
+              <div className="modal-header border-0">
+                <h5 className="modal-title fw-bold text-danger">
+                  <i className="bi bi-exclamation-triangle me-2"></i>Confirm Delete
+                </h5>
                 <button
-                  className="btn btn-secondary me-2"
+                  type="button"
+                  className="btn-close"
+                  onClick={() => setShowDeleteConfirm(false)}
+                ></button>
+              </div>
+              <div className="modal-body">
+                <p className="mb-0">
+                  Are you sure you want to permanently delete{" "}
+                  <strong>{binToDelete?.name}</strong>? <br />
+                  <span className="text-muted small">
+                    This action cannot be undone.
+                  </span>
+                </p>
+              </div>
+              <div className="modal-footer border-0">
+                <button
+                  className="btn btn-outline-secondary"
                   onClick={() => setShowDeleteConfirm(false)}
                 >
                   Cancel
@@ -295,34 +400,78 @@ const AdminBins = () => {
               </div>
             </div>
           </div>
-        )}
+        </div>
 
-        {/* Archive Confirmation Modal */}
-        {showArchiveConfirm && (
-          <div
-            className="position-fixed top-0 start-0 w-100 h-100 bg-dark bg-opacity-50 d-flex align-items-center justify-content-center"
-            style={{ zIndex: 1050 }}
-          >
-            <div className="bg-white p-4 rounded shadow" style={{ width: "400px" }}>
-              <h5 className="text-warning mb-3">
-                {binToArchive?.isArchived ? "Restore Bin" : "Archive Bin"}
-              </h5>
-              <p>
-                Are you sure you want to{" "}
-                {binToArchive?.isArchived ? "restore" : "archive"}{" "}
-                <strong>{binToArchive?.name}</strong>?
-              </p>
-              <div className="text-end">
+        {/* ✅ Archive / Restore Confirmation Modal */}
+        <div
+          className={`modal fade ${showArchiveConfirm ? "show d-block" : ""}`}
+          tabIndex="-1"
+          role="dialog"
+          style={{
+            backgroundColor: showArchiveConfirm
+              ? "rgba(0,0,0,0.5)"
+              : "transparent",
+            backdropFilter: showArchiveConfirm ? "blur(3px)" : "none",
+          }}
+        >
+          <div className="modal-dialog modal-dialog-centered" role="document">
+            <div className="modal-content shadow-lg border-0 rounded-4 animate__animated animate__zoomIn">
+              <div className="modal-header border-0">
+                <h5
+                  className={`modal-title fw-bold ${
+                    binToArchive?.isArchived ? "text-success" : "text-warning"
+                  }`}
+                >
+                  <i
+                    className={`bi ${
+                      binToArchive?.isArchived
+                        ? "bi-arrow-counterclockwise"
+                        : "bi-archive"
+                    } me-2`}
+                  ></i>
+                  {binToArchive?.isArchived ? "Restore Bin" : "Archive Bin"}
+                </h5>
                 <button
-                  className="btn btn-secondary me-2"
+                  type="button"
+                  className="btn-close"
+                  onClick={() => setShowArchiveConfirm(false)}
+                ></button>
+              </div>
+              <div className="modal-body">
+                <p className="mb-0">
+                  Are you sure you want to{" "}
+                  {binToArchive?.isArchived ? "restore" : "archive"}{" "}
+                  <strong>{binToArchive?.name}</strong>?
+                </p>
+              </div>
+              <div className="modal-footer border-0">
+                <button
+                  className="btn btn-outline-secondary"
                   onClick={() => setShowArchiveConfirm(false)}
                 >
                   Cancel
                 </button>
-                <button className="btn btn-warning" onClick={confirmArchive}>
+                <button
+                  className={`btn ${
+                    binToArchive?.isArchived ? "btn-success" : "btn-warning"
+                  }`}
+                  onClick={confirmArchive}
+                >
                   {binToArchive?.isArchived ? "Restore" : "Archive"}
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+
+        {/* ✅ Success Toast */}
+        {toastMessage && (
+          <div
+            className="toast-container position-fixed bottom-0 end-0 p-3"
+            style={{ zIndex: 1055 }}
+          >
+            <div className="toast show bg-success text-white border-0 shadow-lg rounded-3 animate__animated animate__fadeInUp">
+              <div className="toast-body fw-semibold">{toastMessage}</div>
             </div>
           </div>
         )}
