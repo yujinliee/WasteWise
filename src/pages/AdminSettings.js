@@ -95,7 +95,7 @@ const AdminSettings = () => {
                     <i className="bi bi-gear-wide-connected fs-1 text-success"></i>
                   </div>
                   <div>
-                    <h1 className="fw-bold mb-1">Admin Settings</h1>
+                    <h1 className="fw-bold mb-1">Administrator Settings</h1>
                     <p className="text-muted mb-0">
                       Configure system preferences and controls
                     </p>

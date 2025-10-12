@@ -31,19 +31,33 @@ function UserSettings() {
     confirmPassword: "",
   });
 
+  const [preview, setPreview] = useState("/default-profile.png");
+  const [pendingImage, setPendingImage] = useState(null); // for background upload
+
   // Initialize form data from user
   useEffect(() => {
     if (user) {
       const names = (user.displayName || "").split(" ");
-      setFormData((prev) => ({
+      setFormData(prev => ({
         ...prev,
         firstName: names[0] || "",
         lastName: names.slice(1).join(" ") || "",
       }));
+      setPreview(user.photoURL || "/default-profile.png");
     }
   }, [user]);
 
-  const handleChange = (e) => {
+  // Update preview when new image is selected
+  useEffect(() => {
+    if (formData.profilePicture) {
+      const url = URL.createObjectURL(formData.profilePicture);
+      setPreview(url);
+      setPendingImage(formData.profilePicture);
+      return () => URL.revokeObjectURL(url);
+    }
+  }, [formData.profilePicture]);
+
+  const handleChange = e => {
     const { name, value, type, files } = e.target;
     if (type === "file") {
       const file = files[0];
@@ -59,14 +73,14 @@ function UserSettings() {
           e.target.value = "";
           return;
         }
-        setFormData((prev) => ({ ...prev, profilePicture: file }));
+        setFormData(prev => ({ ...prev, profilePicture: file }));
       }
     } else {
-      setFormData((prev) => ({ ...prev, [name]: value }));
+      setFormData(prev => ({ ...prev, [name]: value }));
     }
   };
 
-  const showNotification = (message) => {
+  const showNotification = message => {
     setPopupMessage(message);
     setShowPopup(true);
     setTimeout(() => setShowPopup(false), 3000);
@@ -75,7 +89,7 @@ function UserSettings() {
   const resetProfileForm = () => {
     if (user) {
       const names = (user.displayName || "").split(" ");
-      setFormData((prev) => ({
+      setFormData(prev => ({
         ...prev,
         firstName: names[0] || "",
         lastName: names.slice(1).join(" ") || "",
@@ -84,10 +98,12 @@ function UserSettings() {
     }
     const fileInput = document.querySelector('input[name="profilePicture"]');
     if (fileInput) fileInput.value = "";
+    setPreview(user?.photoURL || "/default-profile.png");
+    setPendingImage(null);
   };
 
   const resetPasswordForm = () => {
-    setFormData((prev) => ({
+    setFormData(prev => ({
       ...prev,
       currentPassword: "",
       newPassword: "",
@@ -95,38 +111,73 @@ function UserSettings() {
     }));
   };
 
-  // PROFILE UPDATE
-  const handleProfileSubmit = async (e) => {
+  const compressImage = file =>
+    new Promise(resolve => {
+      const canvas = document.createElement("canvas");
+      const ctx = canvas.getContext("2d");
+      const img = new Image();
+
+      img.onload = () => {
+        const MAX_SIZE = 200; // smaller = faster
+        let width = img.width;
+        let height = img.height;
+
+        if (width > height) {
+          if (width > MAX_SIZE) {
+            height *= MAX_SIZE / width;
+            width = MAX_SIZE;
+          }
+        } else {
+          if (height > MAX_SIZE) {
+            width *= MAX_SIZE / height;
+            height = MAX_SIZE;
+          }
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        ctx.drawImage(img, 0, 0, width, height);
+        canvas.toBlob(
+          blob => resolve(new File([blob], file.name, { type: "image/jpeg" })),
+          "image/jpeg",
+          0.7
+        );
+      };
+
+      img.src = URL.createObjectURL(file);
+    });
+
+  // PROFILE UPDATE (instant text update)
+  const handleProfileSubmit = async e => {
     e.preventDefault();
-    if (!user) {
-      alert("⚠️ No user found. Please log in again.");
-      return;
-    }
+    if (!user) return alert("⚠️ No user found. Please log in again.");
 
     setIsLoading(true);
     try {
       const fullName = `${formData.firstName} ${formData.lastName}`.trim();
       if (!fullName) throw new Error("Please enter first and last name.");
 
-      const updates = { displayName: fullName };
+      // Update text immediately
+      await updateProfile(auth.currentUser, { displayName: fullName });
+      if (refreshUser) await refreshUser();
+      showNotification("✅ Name updated successfully!");
 
-      // Upload profile picture if selected
-      if (formData.profilePicture) {
-        const compressedFile = await compressImage(formData.profilePicture);
+      // Background image upload
+      if (pendingImage) {
+        const compressedFile = await compressImage(pendingImage);
         const storageRef = ref(
           storage,
           `profile_pictures/${user.uid}/profile_${Date.now()}.jpg`
         );
         const snapshot = await uploadBytes(storageRef, compressedFile);
         const downloadURL = await getDownloadURL(snapshot.ref);
-        updates.photoURL = downloadURL;
+
+        await updateProfile(auth.currentUser, { photoURL: downloadURL });
+        if (refreshUser) await refreshUser();
+        showNotification("✅ Profile picture updated!");
+        setPendingImage(null);
+        setFormData(prev => ({ ...prev, profilePicture: null }));
       }
-
-      await updateProfile(auth.currentUser, updates);
-      if (refreshUser) await refreshUser();
-
-      showNotification("✅ Profile updated successfully!");
-      resetProfileForm();
     } catch (err) {
       console.error("Profile update error:", err);
       alert(`⚠️ Failed to update profile. ${err.message}`);
@@ -135,70 +186,25 @@ function UserSettings() {
     }
   };
 
-  // Image compression
-  const compressImage = (file) => {
-    return new Promise((resolve) => {
-      const canvas = document.createElement("canvas");
-      const ctx = canvas.getContext("2d");
-      const img = new Image();
-
-      img.onload = () => {
-        const MAX_WIDTH = 400;
-        const MAX_HEIGHT = 400;
-        let width = img.width;
-        let height = img.height;
-
-        if (width > height) {
-          if (width > MAX_WIDTH) {
-            height *= MAX_WIDTH / width;
-            width = MAX_WIDTH;
-          }
-        } else {
-          if (height > MAX_HEIGHT) {
-            width *= MAX_HEIGHT / height;
-            height = MAX_HEIGHT;
-          }
-        }
-
-        canvas.width = width;
-        canvas.height = height;
-        ctx.drawImage(img, 0, 0, width, height);
-        canvas.toBlob(
-          (blob) => resolve(new File([blob], file.name, { type: "image/jpeg" })),
-          "image/jpeg",
-          0.7
-        );
-      };
-      img.src = URL.createObjectURL(file);
-    });
-  };
-
   // PASSWORD UPDATE
-  const handlePasswordSubmit = async (e) => {
+  const handlePasswordSubmit = async e => {
     e.preventDefault();
 
     if (!formData.currentPassword || !formData.newPassword || !formData.confirmPassword) {
-      alert("⚠️ Please fill in all password fields.");
-      return;
+      return alert("⚠️ Please fill in all password fields.");
     }
 
     if (formData.newPassword !== formData.confirmPassword) {
-      alert("❌ New passwords do not match!");
-      return;
+      return alert("❌ New passwords do not match!");
     }
 
     if (formData.newPassword.length < 6) {
-      alert("⚠️ Password must be at least 6 characters long.");
-      return;
+      return alert("⚠️ Password must be at least 6 characters long.");
     }
 
     try {
       setIsLoading(true);
-      const credential = EmailAuthProvider.credential(
-        user.email,
-        formData.currentPassword
-      );
-
+      const credential = EmailAuthProvider.credential(user.email, formData.currentPassword);
       await reauthenticateWithCredential(auth.currentUser, credential);
       await updatePassword(auth.currentUser, formData.newPassword);
       showNotification("✅ Password updated successfully!");
@@ -218,12 +224,9 @@ function UserSettings() {
 
   const getActiveIcon = () => {
     switch (activeTab) {
-      case "profile":
-        return "bi-person-circle text-success";
-      case "security":
-        return "bi-shield-lock text-warning";
-      default:
-        return "bi-gear text-secondary";
+      case "profile": return "bi-person-circle text-success";
+      case "security": return "bi-shield-lock text-warning";
+      default: return "bi-gear text-secondary";
     }
   };
 
@@ -232,7 +235,6 @@ function UserSettings() {
       <NavbarUser />
       <div className="flex-grow-1 d-flex flex-column">
         <TopNavbarUser />
-
         <div className="flex-grow-1 p-4" style={{ overflow: "hidden" }}>
           <div className="container-fluid h-100 d-flex flex-column">
             {/* Header */}
@@ -244,9 +246,7 @@ function UserSettings() {
                   </div>
                   <div>
                     <h1 className="fw-bold mb-1">Account Settings</h1>
-                    <p className="text-muted mb-0">
-                      Manage your profile and security
-                    </p>
+                    <p className="text-muted mb-0">Manage your profile and security</p>
                   </div>
                 </div>
               </div>
@@ -259,18 +259,11 @@ function UserSettings() {
                   <div className="card-body d-flex flex-column p-3">
                     <div className="text-center mb-4">
                       <img
-                        src={user?.photoURL || "/default-profile.png"}
+                        src={preview}
                         alt="User Avatar"
                         className="rounded-circle shadow mb-2"
-                        style={{
-                          width: "80px",
-                          height: "80px",
-                          objectFit: "cover",
-                          border: "3px solid #10b981",
-                        }}
-                        onError={(e) => {
-                          e.target.src = "/default-profile.png";
-                        }}
+                        style={{ width: "80px", height: "80px", objectFit: "cover", border: "3px solid #10b981" }}
+                        onError={e => { e.target.src = "/default-profile.png"; }}
                       />
                       <h6 className="fw-bold mb-1">{user?.displayName || "User"}</h6>
                       <p className="text-muted small mb-0">{user?.email}</p>
@@ -286,10 +279,7 @@ function UserSettings() {
                               ? `bg-${tab.color} bg-opacity-10 text-${tab.color} border-start border-3 border-${tab.color}`
                               : "text-muted"
                           } animate__animated animate__fadeIn`}
-                          style={{
-                            animationDelay: `${index * 0.1}s`,
-                            transition: "all 0.3s ease",
-                          }}
+                          style={{ animationDelay: `${index * 0.1}s`, transition: "all 0.3s ease" }}
                           onClick={() => setActiveTab(tab.key)}
                         >
                           <i className={`${tab.icon} fs-5`}></i>
@@ -308,118 +298,92 @@ function UserSettings() {
                     <div className="mb-4 animate__animated animate__fadeInDown">
                       <h4 className="fw-bold mb-2">
                         <i className={`${getActiveIcon()} me-2`}></i>
-                        {tabConfig.find((tab) => tab.key === activeTab)?.label}
+                        {tabConfig.find(tab => tab.key === activeTab)?.label}
                       </h4>
                       <p className="text-muted mb-0">
-                        {activeTab === "profile" &&
-                          "Update your personal details and profile picture."}
-                        {activeTab === "security" &&
-                          "Manage your password and account security."}
+                        {activeTab === "profile"
+                          ? "Update your personal details and profile picture."
+                          : "Manage your password and account security."}
                       </p>
                     </div>
 
                     {/* Profile Tab */}
-{activeTab === "profile" && (
-  <form
-    onSubmit={handleProfileSubmit}
-    className="animate__animated animate__fadeIn"
-  >
-    <div className="row g-3">
-      <div className="col-12 col-md-6">
-        <label className="form-label fw-semibold">First Name *</label>
-        <input
-          type="text"
-          name="firstName"
-          className="form-control"
-          value={formData.firstName}
-          onChange={handleChange}
-          required
-          disabled={isLoading}
-        />
-      </div>
-      <div className="col-12 col-md-6">
-        <label className="form-label fw-semibold">Last Name *</label>
-        <input
-          type="text"
-          name="lastName"
-          className="form-control"
-          value={formData.lastName}
-          onChange={handleChange}
-          required
-          disabled={isLoading}
-        />
-      </div>
-      <div className="col-12">
-        <label className="form-label fw-semibold">Email</label>
-        <input
-          type="email"
-          className="form-control"
-          value={user?.email || ""}
-          disabled
-          style={{
-            backgroundColor: "#f8f9fa",
-            cursor: "not-allowed",
-          }}
-        />
-        <small className="text-muted">Email cannot be changed</small>
-      </div>
-      <div className="col-12">
-        <label className="form-label fw-semibold">Profile Picture</label>
-        <input
-          type="file"
-          name="profilePicture"
-          accept=".jpg,.jpeg,.png"
-          className="form-control"
-          onChange={handleChange}
-          disabled={isLoading}
-        />
-        <small className="text-muted">
-          JPG/PNG • Max 2MB • Recommended 400x400px
-        </small>
-      </div>
-    </div>
+                    {activeTab === "profile" && (
+                      <form onSubmit={handleProfileSubmit} className="animate__animated animate__fadeIn">
+                        <div className="row g-3">
+                          <div className="col-12 col-md-6">
+                            <label className="form-label fw-semibold">First Name *</label>
+                            <input
+                              type="text"
+                              name="firstName"
+                              className="form-control"
+                              value={formData.firstName}
+                              onChange={handleChange}
+                              required
+                              disabled={isLoading}
+                            />
+                          </div>
+                          <div className="col-12 col-md-6">
+                            <label className="form-label fw-semibold">Last Name *</label>
+                            <input
+                              type="text"
+                              name="lastName"
+                              className="form-control"
+                              value={formData.lastName}
+                              onChange={handleChange}
+                              required
+                              disabled={isLoading}
+                            />
+                          </div>
+                          <div className="col-12">
+                            <label className="form-label fw-semibold">Email</label>
+                            <input
+                              type="email"
+                              className="form-control"
+                              value={user?.email || ""}
+                              disabled
+                              style={{ backgroundColor: "#f8f9fa", cursor: "not-allowed" }}
+                            />
+                            <small className="text-muted">Email cannot be changed</small>
+                          </div>
+                          <div className="col-12">
+                            <label className="form-label fw-semibold">Profile Picture</label>
+                            <input
+                              type="file"
+                              name="profilePicture"
+                              accept=".jpg,.jpeg,.png"
+                              className="form-control"
+                              onChange={handleChange}
+                              disabled={isLoading}
+                            />
+                            <small className="text-muted">JPG/PNG • Max 2MB • Recommended 200x200px</small>
+                          </div>
+                        </div>
 
-    <div className="mt-4 d-flex gap-2 justify-content-end">
-      <button
-        type="button"
-        className="btn btn-outline-secondary px-4"
-        onClick={resetProfileForm}
-        disabled={isLoading}
-      >
-        Reset
-      </button>
-      <button
-        type="submit"
-        className="btn btn-success px-4"
-        disabled={isLoading}
-      >
-        {isLoading ? (
-          <>
-            <span
-              className="spinner-border spinner-border-sm me-2"
-              role="status"
-            ></span>
-            Uploading...
-          </>
-        ) : (
-          "Save Changes"
-        )}
-      </button>
-    </div>
-  </form>
-)}
+                        <div className="mt-4 d-flex gap-2 justify-content-end">
+                          <button type="button" className="btn btn-outline-secondary px-4" onClick={resetProfileForm} disabled={isLoading}>
+                            Reset
+                          </button>
+                          <button type="submit" className="btn btn-success px-4" disabled={isLoading}>
+                            {isLoading ? (
+                              <>
+                                <span className="spinner-border spinner-border-sm me-2" role="status"></span>
+                                Saving...
+                              </>
+                            ) : (
+                              "Save Changes"
+                            )}
+                          </button>
+                        </div>
+                      </form>
+                    )}
 
                     {/* Security Tab */}
                     {activeTab === "security" && (
-                      <form
-                        onSubmit={handlePasswordSubmit}
-                        className="animate__animated animate__fadeIn"
-                      >
+                      <form onSubmit={handlePasswordSubmit} className="animate__animated animate__fadeIn">
                         <div className="row g-3">
                           <div className="col-12">
-                            <label className="form-label fw-semibold">
-                              Current Password *
-                            </label>
+                            <label className="form-label fw-semibold">Current Password *</label>
                             <input
                               type="password"
                               name="currentPassword"
@@ -430,9 +394,7 @@ function UserSettings() {
                             />
                           </div>
                           <div className="col-md-6">
-                            <label className="form-label fw-semibold">
-                              New Password *
-                            </label>
+                            <label className="form-label fw-semibold">New Password *</label>
                             <input
                               type="password"
                               name="newPassword"
@@ -443,9 +405,7 @@ function UserSettings() {
                             />
                           </div>
                           <div className="col-md-6">
-                            <label className="form-label fw-semibold">
-                              Confirm Password *
-                            </label>
+                            <label className="form-label fw-semibold">Confirm Password *</label>
                             <input
                               type="password"
                               name="confirmPassword"
@@ -458,25 +418,13 @@ function UserSettings() {
                         </div>
 
                         <div className="mt-4 d-flex gap-2 justify-content-end">
-                          <button
-                            type="button"
-                            className="btn btn-outline-secondary px-4"
-                            onClick={resetPasswordForm}
-                            disabled={isLoading}
-                          >
+                          <button type="button" className="btn btn-outline-secondary px-4" onClick={resetPasswordForm} disabled={isLoading}>
                             Reset
                           </button>
-                          <button
-                            type="submit"
-                            className="btn btn-warning px-4"
-                            disabled={isLoading}
-                          >
+                          <button type="submit" className="btn btn-warning px-4" disabled={isLoading}>
                             {isLoading ? (
                               <>
-                                <span
-                                  className="spinner-border spinner-border-sm me-2"
-                                  role="status"
-                                ></span>
+                                <span className="spinner-border spinner-border-sm me-2" role="status"></span>
                                 Updating...
                               </>
                             ) : (
@@ -495,10 +443,7 @@ function UserSettings() {
 
         {/* Popup Notification */}
         {showPopup && (
-          <div
-            className="position-fixed top-0 start-50 translate-middle-x mt-5 animate__animated animate__fadeInDown"
-            style={{ zIndex: 1050 }}
-          >
+          <div className="position-fixed top-0 start-50 translate-middle-x mt-5 animate__animated animate__fadeInDown" style={{ zIndex: 1050 }}>
             <div className="alert alert-success shadow-lg border-0 d-flex align-items-center gap-2">
               <i className="bi bi-check-circle-fill"></i>
               {popupMessage}

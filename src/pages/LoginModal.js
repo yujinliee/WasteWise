@@ -178,25 +178,7 @@ function LoginModal({ open, handleClose }) {
                       "Sign In"
                     )}
                   </button>
-                  <button
-                    type="button"
-                    className="btn btn-outline-danger w-100"
-                    onClick={handleGoogleLogin}
-                    disabled={isLoading}
-                  >
-                    {isLoading ? (
-                      <>
-                        <span
-                          className="spinner-border spinner-border-sm me-2"
-                          role="status"
-                          aria-hidden="true"
-                        ></span>
-                        Signing In...
-                      </>
-                    ) : (
-                      "Sign in with Google"
-                    )}
-                  </button>
+
                 </form>
               </div>
 

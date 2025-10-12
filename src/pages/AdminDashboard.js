@@ -65,7 +65,7 @@ const AdminDashboard = () => {
               }}
             >
               <div>
-                <h2 className="fw-bold mb-1">Welcome back, Admin 👋</h2>
+                <h2 className="fw-bold mb-1">Welcome back, Administrator 👋</h2>
                 <p className="text-light mb-0">
                   Oversee bins, manage reports, and keep the campus running smoothly.
                 </p>
@@ -236,7 +236,7 @@ const AdminDashboard = () => {
 
                 <div className="card border-0 shadow-sm rounded-4 p-4 animate__animated animate__fadeIn hover-border-line">
                   <h5 className="fw-bold text-info mb-3">
-                    <i className="bi bi-journal-check me-2"></i>Admin Notes
+                    <i className="bi bi-journal-check me-2"></i>Administrator Notes
                   </h5>
                   <p className="text-muted small mb-0">
                     - Check daily bin reports <br />

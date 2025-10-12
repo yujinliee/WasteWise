@@ -151,8 +151,8 @@ const Users = () => {
               }}
             >
               <div>
-                <h3 className="fw-bold mb-1">Users Management 👥</h3>
-                <p className="text-light mb-0">
+                <h3 className="fw-bold mb-1 text-start">Users Management 👥</h3>
+                <p className="text-light text-start mb-0">
                   Manage, archive, and organize system users efficiently.
                 </p>
               </div>

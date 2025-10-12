@@ -91,7 +91,7 @@ const UserDashboard = () => {
 
             {/* ========================= WELCOME SECTION ========================= */}
             <div
-              className="widget welcome-section mb-4 animate__animated animate__fadeInDown text-white rounded-3 shadow-sm p-0 d-flex align-items-center justify-content-between floating-card"
+              className="widget welcome-section shadow mb-4 animate__animated animate__fadeInDown text-white rounded-3 shadow-sm p-0 d-flex align-items-center justify-content-between floating-card"
               style={{
                 background: "linear-gradient(135deg, #14b8a6 0%, #0d9488 100%)",
                 height: "200px",
@@ -99,7 +99,7 @@ const UserDashboard = () => {
             >
               <div className="text-start px-4 d-flex flex-column justify-content-center h-100">
                 <h2 className="fw-bold mb-1 text-white">
-                  Welcome back, {user?.displayName || "User"} 👋
+                  Welcome, {user?.displayName || "User"} 👋
                 </h2>
                 <p className="mb-0 text-light">
                   Monitor campus bins and contribute to a cleaner environment.
@@ -120,7 +120,7 @@ const UserDashboard = () => {
 
             {/* ========================= KPI CARDS ========================= */}
             <div className="row g-3 mb-4">
-              <div className="col-md-4">
+              <div className="col-md-4 ">
                 <KpiCard
                   color="linear-gradient(135deg, #10b981 0%, #059669 100%)"
                   icon="bi-hdd-network"
@@ -152,7 +152,7 @@ const UserDashboard = () => {
             </div>
 
             {/* ========================= MAIN GRID ========================= */}
-            <div className="dashboard-grid">
+            <div className="dashboard-grid shadow">
               {/* LEFT COLUMN */}
               <div>
                 {/* Bin Overview */}
@@ -225,7 +225,7 @@ const UserDashboard = () => {
 
 const KpiCard = ({ color, icon, title, value, description }) => (
   <div
-    className="widget floating-card shadow-sm rounded-3 p-3 text-white animate__animated animate__fadeInUp"
+    className="widget floating-card shadow rounded-3 p-3 text-white animate__animated animate__fadeInUp"
     style={{ background: color }}
   >
     <div className="d-flex justify-content-between align-items-center mb-2">
@@ -240,7 +240,7 @@ const KpiCard = ({ color, icon, title, value, description }) => (
 );
 
 const BinOverview = ({ bins, loading, getFillColor, getFillWidth }) => (
-  <div className="widget shadow-sm rounded-3 p-3 bg-white mb-4 animate__animated animate__fadeIn hover-border-line">
+  <div className="widget shadow rounded-3 p-3 bg-white mb-4 animate__animated animate__fadeIn hover-border-line">
     <div className="d-flex justify-content-between align-items-center mb-3">
       <h5 className="fw-bold text-primary mb-0">
         <i className="bi bi-trash me-2"></i>Bin Overview
@@ -291,7 +291,7 @@ const BinOverview = ({ bins, loading, getFillColor, getFillWidth }) => (
 );
 
 const Notifications = ({ notifications, getBadgeColor }) => (
-  <div className="widget shadow-sm rounded-4 p-4 bg-white animate__animated animate__fadeIn hover-border-line">
+  <div className="widget shadow rounded-4 p-4 bg-white animate__animated animate__fadeIn hover-border-line">
     <div className="d-flex justify-content-between align-items-center mb-3 border-bottom pb-2">
       <h5 className="fw-bold mb-0 text-primary">
         <i className="bi bi-bell-fill me-2 text-warning"></i>Notifications
@@ -354,7 +354,7 @@ const Notifications = ({ notifications, getBadgeColor }) => (
 );
 
 const RecentActivity = ({ recentHistory }) => (
-  <div className="widget shadow-sm rounded-3 p-3 bg-white mb-4 animate__animated animate__fadeIn hover-border-line">
+  <div className="widget shadow rounded-3 p-3 bg-white mb-4 animate__animated animate__fadeIn hover-border-line">
     <div className="widget-header mb-3">
       <h5 className="fw-bold">
         <i className="bi bi-clock-history me-2 text-secondary"></i>Recent Activity
@@ -377,7 +377,7 @@ const RecentActivity = ({ recentHistory }) => (
 );
 
 const EcoTips = ({ ecoTips }) => (
-  <div className="widget shadow-sm rounded-3 p-3 bg-white animate__animated animate__fadeIn hover-border-line">
+  <div className="widget shadow rounded-3 p-3 bg-white animate__animated animate__fadeIn hover-border-line">
     <div className="widget-header mb-3">
       <h5 className="fw-bold">
         <i className="bi bi-lightbulb me-2 text-info"></i>Eco Tips

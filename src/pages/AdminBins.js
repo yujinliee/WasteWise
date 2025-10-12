@@ -121,8 +121,8 @@ const AdminBins = () => {
               }}
             >
               <div>
-                <h3 className="fw-bold mb-1">Bin Management 🗑️</h3>
-                <p className="text-light mb-0">
+                <h3 className="fw-bold mb-1 text-start">Bin Management 🗑️</h3>
+                <p className="text-light mb-0 text-start">
                   Monitor, archive, and manage campus waste bins efficiently.
                 </p>
               </div>

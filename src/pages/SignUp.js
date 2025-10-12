@@ -5,8 +5,7 @@ import {
   sendEmailVerification,
   signOut,
 } from "firebase/auth";
-import { auth, db } from "../Components/firebase"; // ✅ make sure db is exported from your firebase.js
-import { doc, setDoc } from "firebase/firestore";
+import { auth } from "../Components/firebase";
 import SuccessPopup from "../Components/SuccessPopup";
 import "bootstrap/dist/css/bootstrap.min.css";
 
@@ -68,71 +67,50 @@ function SignUpModal({ open, handleClose }) {
     if (Object.keys(newErrors).length > 0) return;
 
     try {
-      // ✅ Create user in Firebase Authentication
       const userCredential = await createUserWithEmailAndPassword(
         auth,
         formData.email,
         formData.password
       );
 
-      const user = userCredential.user;
-      const displayName = `${formData.firstName} ${formData.lastName}`;
-
-      // ✅ Update display name in Firebase Auth
-      await updateProfile(user, { displayName });
-
-      // ✅ Add user to Firestore (so it shows up in Admin Dashboard)
-      await setDoc(doc(db, "users", user.uid), {
-        displayName,
-        email: formData.email,
-        status: "Active",
-        joinDate: new Date().toISOString().split("T")[0], // format: YYYY-MM-DD
-        archived: false,
+      await updateProfile(userCredential.user, {
+        displayName: `${formData.firstName} ${formData.lastName}`,
       });
 
-      console.log("User added to Firestore successfully!");
-
-      // ✅ Send verification email
-      await sendEmailVerification(user);
-
-      // ✅ Log out after signup to force email verification
+      await sendEmailVerification(userCredential.user);
       await signOut(auth);
 
       setFormData(initialForm);
       setSuccessOpen(true);
     } catch (error) {
       alert("❌ " + error.message);
-      console.error("Error during sign-up:", error);
     }
   };
 
-  const openModal = (modalType) => setActiveModal(modalType);
-  const closeModal = () => setActiveModal(null);
+  const openModal = (modalType) => {
+    setActiveModal(modalType);
+  };
+
+  const closeModal = () => {
+    setActiveModal(null);
+  };
 
   if (!open) return null;
 
   return (
     <>
-      {/* Sign Up Modal */}
-      <div
-        className="modal show d-block"
-        tabIndex="-1"
-        role="dialog"
-        style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
-      >
+      <div className="modal show d-block" tabIndex="-1" role="dialog" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
         <div className="modal-dialog modal-dialog-centered" role="document">
           <div className="modal-content shadow-lg">
-            <div className="modal-header bg-white">
-              <h5 className="modal-title fw-bold text-center flex-grow-1">
-                Create Account
-              </h5>
-              <button
-                type="button"
-                className="btn-close"
-                onClick={handleClose}
-              ></button>
+            {/* Header */}
+            <div className="modal-header d-flex justify-content-between align-items-center bg-white">
+              <div className="flex-grow-1 text-center">
+                <h5 className="modal-title fw-bold mb-0">Create Account</h5>
+              </div>
+              <button type="button" className="btn-close" onClick={handleClose}></button>
             </div>
 
+            {/* Body */}
             <div className="modal-body px-4">
               <form onSubmit={handleSubmit}>
                 {/* Name fields */}
@@ -210,9 +188,7 @@ function SignUpModal({ open, handleClose }) {
 
                 {/* Confirm Password */}
                 <div className="mb-2 text-start">
-                  <label className="form-label fw-semibold">
-                    Confirm Password
-                  </label>
+                  <label className="form-label fw-semibold">Confirm Password</label>
                   <div className="input-group input-group-sm">
                     <input
                       type={showConfirmPassword ? "text" : "password"}
@@ -225,17 +201,13 @@ function SignUpModal({ open, handleClose }) {
                     <button
                       type="button"
                       className="btn btn-outline-secondary"
-                      onClick={() =>
-                        setShowConfirmPassword(!showConfirmPassword)
-                      }
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                     >
                       {showConfirmPassword ? "Hide" : "Show"}
                     </button>
                   </div>
                   {errors.confirmPassword && (
-                    <div className="text-danger small">
-                      {errors.confirmPassword}
-                    </div>
+                    <div className="text-danger small">{errors.confirmPassword}</div>
                   )}
                 </div>
 
@@ -249,31 +221,26 @@ function SignUpModal({ open, handleClose }) {
                     checked={formData.agreeToTerms}
                     onChange={handleChange}
                   />
-                  <label
-                    className="form-check-label small"
-                    htmlFor="agreeToTerms"
-                  >
+                  <label className="form-check-label small" htmlFor="agreeToTerms">
                     I agree to the{" "}
-                    <button
-                      type="button"
-                      className="btn btn-link text-primary p-0 border-0"
-                      onClick={() => openModal("terms")}
+                    <button 
+                      type="button" 
+                      className="btn btn-link text-primary p-0 border-0 align-baseline"
+                      onClick={() => openModal('terms')}
                     >
                       Terms of Service
                     </button>{" "}
                     and{" "}
-                    <button
-                      type="button"
-                      className="btn btn-link text-primary p-0 border-0"
-                      onClick={() => openModal("privacy")}
+                    <button 
+                      type="button" 
+                      className="btn btn-link text-primary p-0 border-0 align-baseline"
+                      onClick={() => openModal('privacy')}
                     >
                       Privacy Policy
                     </button>
                   </label>
                   {errors.agreeToTerms && (
-                    <div className="text-danger small">
-                      {errors.agreeToTerms}
-                    </div>
+                    <div className="text-danger small">{errors.agreeToTerms}</div>
                   )}
                 </div>
 
@@ -284,12 +251,13 @@ function SignUpModal({ open, handleClose }) {
               </form>
             </div>
 
+            {/* Footer */}
             <div className="modal-footer justify-content-center">
               <p className="mb-0 small">
                 Already have an account?{" "}
-                <button
-                  type="button"
-                  className="btn btn-link text-primary fw-semibold p-0 border-0"
+                <button 
+                  type="button" 
+                  className="btn btn-link text-primary fw-semibold p-0 border-0 align-baseline"
                   onClick={handleClose}
                 >
                   Sign In
@@ -299,6 +267,127 @@ function SignUpModal({ open, handleClose }) {
           </div>
         </div>
       </div>
+
+      {/* Terms of Service Modal */}
+      {activeModal === 'terms' && (
+        <div className="modal show d-block" tabIndex="-1" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
+          <div className="modal-dialog modal-dialog-centered">
+            <div className="modal-content">
+              <div className="modal-header">
+                <h5 className="modal-title">Terms of Service</h5>
+                <button type="button" className="btn-close" onClick={closeModal}></button>
+              </div>
+              <div className="modal-body text-start" style={{ maxHeight: "400px", overflowY: "auto" }}>
+                <h6>Welcome to WasteWise!</h6>
+                <p>By creating an account, you agree to the following terms:</p>
+                
+                <h6>1. Account Responsibilities</h6>
+                <ul>
+                  <li>You must provide accurate and complete information during registration</li>
+                  <li>You are responsible for maintaining the confidentiality of your account credentials</li>
+                  <li>You must notify us immediately of any unauthorized use of your account</li>
+                </ul>
+
+                <h6>2. Acceptable Use</h6>
+                <ul>
+                  <li>Use the platform only for lawful purposes</li>
+                  <li>Do not engage in any activity that disrupts or interferes with the service</li>
+                  <li>Respect other users and maintain appropriate conduct</li>
+                </ul>
+
+                <h6>3. Data Usage</h6>
+                <ul>
+                  <li>We collect and process data as described in our Privacy Policy</li>
+                  <li>You grant us permission to use your data to provide and improve our services</li>
+                </ul>
+
+                <h6>4. Service Modifications</h6>
+                <p>We reserve the right to modify or discontinue services at any time. Continued use after changes constitutes acceptance of modified terms.</p>
+
+                <h6>5. Termination</h6>
+                <p>We may suspend or terminate accounts that violate these terms or engage in harmful activities.</p>
+
+                <div className="mt-3 p-3 bg-light rounded">
+                  <small className="text-muted">
+                    Last updated: {new Date().toLocaleDateString()}
+                  </small>
+                </div>
+              </div>
+              <div className="modal-footer">
+                <button type="button" className="btn btn-success" onClick={closeModal}>
+                  I Understand
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Privacy Policy Modal */}
+      {activeModal === 'privacy' && (
+        <div className="modal show d-block" tabIndex="-1" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
+          <div className="modal-dialog modal-dialog-centered">
+            <div className="modal-content">
+              <div className="modal-header">
+                <h5 className="modal-title">Privacy Policy</h5>
+                <button type="button" className="btn-close" onClick={closeModal}></button>
+              </div>
+              <div className="modal-body text-start" style={{ maxHeight: "400px", overflowY: "auto" }}>
+                <h6>Your Privacy Matters</h6>
+                <p>We are committed to protecting your personal information. Here's how we handle your data:</p>
+                
+                <h6>1. Information We Collect</h6>
+                <ul>
+                  <li><strong>Personal Information:</strong> Name, email address, and contact details</li>
+                  <li><strong>Usage Data:</strong> How you interact with our platform</li>
+                  <li><strong>Device Information:</strong> Browser type, IP address, and operating system</li>
+                </ul>
+
+                <h6>2. How We Use Your Information</h6>
+                <ul>
+                  <li>To provide and maintain our waste management services</li>
+                  <li>To send important notifications about your account</li>
+                  <li>To improve our platform and user experience</li>
+                  <li>To comply with legal obligations</li>
+                </ul>
+
+                <h6>3. Data Protection</h6>
+                <ul>
+                  <li>We implement industry-standard security measures</li>
+                  <li>Your data is encrypted during transmission</li>
+                  <li>Access to personal information is restricted to authorized personnel</li>
+                </ul>
+
+                <h6>4. Data Sharing</h6>
+                <p>We do not sell your personal information. We may share data with:</p>
+                <ul>
+                  <li>Service providers who assist in platform operations</li>
+                  <li>Legal authorities when required by law</li>
+                </ul>
+
+                <h6>5. Your Rights</h6>
+                <ul>
+                  <li>Access and review your personal data</li>
+                  <li>Request correction of inaccurate information</li>
+                  <li>Request deletion of your account and data</li>
+                  <li>Opt-out of marketing communications</li>
+                </ul>
+
+                <div className="mt-3 p-3 bg-light rounded">
+                  <small className="text-muted">
+                    Last updated: {new Date().toLocaleDateString()}
+                  </small>
+                </div>
+              </div>
+              <div className="modal-footer">
+                <button type="button" className="btn btn-success" onClick={closeModal}>
+                  I Understand
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       <SuccessPopup
         open={successOpen}

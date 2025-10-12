@@ -86,23 +86,29 @@ const TopNavbarAdmin = () => {
 
         {/* Profile Dropdown */}
         <div ref={profileRef} style={{ position: "relative", display: "inline-block" }}>
-          <div className="d-flex align-items-center gap-2" style={{ position: "relative" }}>
+          <div 
+            className="d-flex align-items-center gap-2" 
+            style={{ position: "relative", cursor: "pointer" }}
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowProfile((p) => !p);
+            }}
+          >
             {/* Profile Image */}
             <img
-              src={admin?.photoURL || "/default-profile.png"}
+              src={admin?.photoURL || require("../assets/profile (1).png")}
+              alt="Admin"
               className="rounded-circle shadow-sm"
               style={{
-                width: 44,
-                height: 44,
+                width: 55,
+                height: 55,
                 objectFit: "cover",
-                cursor: "pointer",
-                border: "2px solid #0D4715",
+                border: "3px solid #10b981",
               }}
-              onClick={(e) => {
-                e.stopPropagation();
-                setShowProfile((p) => !p);
+              onError={(e) => {
+                e.target.onerror = null;
+                e.target.src = require("../assets/profile (1).png");
               }}
-              alt="Profile"
             />
           </div>
 
@@ -112,14 +118,14 @@ const TopNavbarAdmin = () => {
               style={{
                 position: "absolute",
                 right: 0,
-                top: 60,
-                minWidth: "200px",
+                top: 70,
+                minWidth: "220px",
                 boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
                 border: "1px solid rgba(13, 71, 21, 0.1)",
                 zIndex: 1000,
               }}
             >
-              <li className="dropdown-header text-muted small">Signed in as Admin</li>
+              <li className="dropdown-header text-muted small">Signed in as Administrator</li>
               <li>
                 <hr className="dropdown-divider my-1" />
               </li>
@@ -132,7 +138,7 @@ const TopNavbarAdmin = () => {
                   }}
                 >
                   <i className="bi bi-gear me-2"></i>
-                  Admin Settings
+                  Administrator Settings
                 </button>
               </li>
               <li>
@@ -145,18 +151,6 @@ const TopNavbarAdmin = () => {
                 >
                   <i className="bi bi-people me-2"></i>
                   Manage Users
-                </button>
-              </li>
-              <li>
-                <button
-                  className="dropdown-item d-flex align-items-center"
-                  onClick={() => {
-                    navigate("/admin/reports");
-                    setShowProfile(false);
-                  }}
-                >
-                  <i className="bi bi-graph-up me-2"></i>
-                  View Reports
                 </button>
               </li>
               <li>
