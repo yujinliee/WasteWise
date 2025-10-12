@@ -15,11 +15,13 @@ import UserBins from "./pages/UserBins";
 import UserNotifications from "./pages/UserNotifications";
 import UserSettings from "./pages/UserSettings";
 
+
 // ✅ Import UserProvider
 import { UserProvider } from "./Components/UserContext";
 
 function App() {
   return (
+    
     // ✅ Wrap your entire app with UserProvider
     <UserProvider>
       <div className="App">
