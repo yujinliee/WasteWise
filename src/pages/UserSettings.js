@@ -302,9 +302,9 @@ function UserSettings() {
               </div>
 
               {/* Main Content */}
-              <div className="col-lg-9 d-flex align-items-stretch">
-                <div className="card border-0 shadow-sm rounded-3 w-100 animate__animated animate__fadeInRight">
-                  <div className="card-body p-4">
+              <div className="col-lg-9 d-flex">
+                <div className="card border-0 shadow-sm rounded-3 w-100 d-flex flex-column animate__animated animate__fadeInRight">
+                  <div className="card-body p-4 flex-grow-1 d-flex flex-column">
                     <div className="mb-4 animate__animated animate__fadeInDown">
                       <h4 className="fw-bold mb-2">
                         <i className={`${getActiveIcon()} me-2`}></i>
@@ -319,104 +319,95 @@ function UserSettings() {
                     </div>
 
                     {/* Profile Tab */}
-                    {activeTab === "profile" && (
-                      <form
-                        onSubmit={handleProfileSubmit}
-                        className="animate__animated animate__fadeIn"
-                      >
-                        <div className="row g-3">
-                          <div className="col-md-6">
-                            <label className="form-label fw-semibold">
-                              First Name *
-                            </label>
-                            <input
-                              type="text"
-                              name="firstName"
-                              className="form-control"
-                              value={formData.firstName}
-                              onChange={handleChange}
-                              required
-                              disabled={isLoading}
-                            />
-                          </div>
-                          <div className="col-md-6">
-                            <label className="form-label fw-semibold">
-                              Last Name *
-                            </label>
-                            <input
-                              type="text"
-                              name="lastName"
-                              className="form-control"
-                              value={formData.lastName}
-                              onChange={handleChange}
-                              required
-                              disabled={isLoading}
-                            />
-                          </div>
-                          <div className="col-md-12">
-                            <label className="form-label fw-semibold">
-                              Email
-                            </label>
-                            <input
-                              type="email"
-                              className="form-control"
-                              value={user?.email || ""}
-                              disabled
-                              style={{
-                                backgroundColor: "#f8f9fa",
-                                cursor: "not-allowed",
-                              }}
-                            />
-                            <small className="text-muted">
-                              Email cannot be changed
-                            </small>
-                          </div>
-                          <div className="col-md-12">
-                            <label className="form-label fw-semibold">
-                              Profile Picture
-                            </label>
-                            <input
-                              type="file"
-                              name="profilePicture"
-                              accept=".jpg,.jpeg,.png"
-                              className="form-control"
-                              onChange={handleChange}
-                              disabled={isLoading}
-                            />
-                            <small className="text-muted">
-                              JPG/PNG • Max 2MB • Recommended 400x400px
-                            </small>
-                          </div>
-                        </div>
-                        <div className="mt-4 d-flex gap-2 justify-content-end">
-                          <button
-                            type="button"
-                            className="btn btn-outline-secondary px-4"
-                            onClick={resetProfileForm}
-                            disabled={isLoading}
-                          >
-                            Reset
-                          </button>
-                          <button
-                            type="submit"
-                            className="btn btn-success px-4"
-                            disabled={isLoading}
-                          >
-                            {isLoading ? (
-                              <>
-                                <span
-                                  className="spinner-border spinner-border-sm me-2"
-                                  role="status"
-                                ></span>
-                                Uploading...
-                              </>
-                            ) : (
-                              "Save Changes"
-                            )}
-                          </button>
-                        </div>
-                      </form>
-                    )}
+{activeTab === "profile" && (
+  <form
+    onSubmit={handleProfileSubmit}
+    className="animate__animated animate__fadeIn"
+  >
+    <div className="row g-3">
+      <div className="col-12 col-md-6">
+        <label className="form-label fw-semibold">First Name *</label>
+        <input
+          type="text"
+          name="firstName"
+          className="form-control"
+          value={formData.firstName}
+          onChange={handleChange}
+          required
+          disabled={isLoading}
+        />
+      </div>
+      <div className="col-12 col-md-6">
+        <label className="form-label fw-semibold">Last Name *</label>
+        <input
+          type="text"
+          name="lastName"
+          className="form-control"
+          value={formData.lastName}
+          onChange={handleChange}
+          required
+          disabled={isLoading}
+        />
+      </div>
+      <div className="col-12">
+        <label className="form-label fw-semibold">Email</label>
+        <input
+          type="email"
+          className="form-control"
+          value={user?.email || ""}
+          disabled
+          style={{
+            backgroundColor: "#f8f9fa",
+            cursor: "not-allowed",
+          }}
+        />
+        <small className="text-muted">Email cannot be changed</small>
+      </div>
+      <div className="col-12">
+        <label className="form-label fw-semibold">Profile Picture</label>
+        <input
+          type="file"
+          name="profilePicture"
+          accept=".jpg,.jpeg,.png"
+          className="form-control"
+          onChange={handleChange}
+          disabled={isLoading}
+        />
+        <small className="text-muted">
+          JPG/PNG • Max 2MB • Recommended 400x400px
+        </small>
+      </div>
+    </div>
+
+    <div className="mt-4 d-flex gap-2 justify-content-end">
+      <button
+        type="button"
+        className="btn btn-outline-secondary px-4"
+        onClick={resetProfileForm}
+        disabled={isLoading}
+      >
+        Reset
+      </button>
+      <button
+        type="submit"
+        className="btn btn-success px-4"
+        disabled={isLoading}
+      >
+        {isLoading ? (
+          <>
+            <span
+              className="spinner-border spinner-border-sm me-2"
+              role="status"
+            ></span>
+            Uploading...
+          </>
+        ) : (
+          "Save Changes"
+        )}
+      </button>
+    </div>
+  </form>
+)}
 
                     {/* Security Tab */}
                     {activeTab === "security" && (
@@ -425,7 +416,7 @@ function UserSettings() {
                         className="animate__animated animate__fadeIn"
                       >
                         <div className="row g-3">
-                          <div className="col-md-12">
+                          <div className="col-12">
                             <label className="form-label fw-semibold">
                               Current Password *
                             </label>

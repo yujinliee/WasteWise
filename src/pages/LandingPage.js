@@ -29,37 +29,6 @@ function LandingPage() {
   return (
     <div className="bg-white text-dark">
       {/* Floating button and feature card styles */}
-      <style>
-        {`
-          /* Floating button */
-          .floating-btn {
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-          }
-          .floating-btn:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
-          }
-
-          .lift {
-            transition: all 0.3s ease;
-          }
-          .lift:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
-          }
-
-          /* Feature cards floating animation */
-          @keyframes float {
-            0% { transform: translateY(0px); }
-            50% { transform: translateY(-8px); }
-            100% { transform: translateY(0px); }
-          }
-          .floating-feature {
-            animation: float 3s ease-in-out infinite;
-          }
-        `}
-      </style>
-
       {/* Navbar */}
       <nav className="navbar navbar-expand-lg navbar-light bg-white shadow-sm fixed-top border-bottom">
         <div className="container">
@@ -78,7 +47,7 @@ function LandingPage() {
 
           <div className="collapse navbar-collapse" id="navbarContent">
             <div className="ms-auto d-flex flex-column flex-lg-row align-items-start align-items-lg-center">
-              {["home", "about", "contact"].map((section) => (
+              {["home", "about", "impact"].map((section) => (
                 <a
                   key={section}
                   href={`#${section}`}
@@ -129,32 +98,33 @@ function LandingPage() {
           </div>
 
           {/* Content */}
-          <div className="position-relative" style={{ zIndex: 3 }}>
-            <h1 className="display-4 fw-bold mb-3 mt-3 text-success">
-              Welcome to TrashAlign
-            </h1>
-            <p className="lead mb-4 text-muted">
-              Your comprehensive solution for efficient waste management.
-            </p>
+<div className="position-relative" style={{ zIndex: 3, marginTop: "50px" }}>
+  <h1 className="display-4 fw-bold mb-3 mt-3 text-success">
+    Welcome to TrashAlign
+  </h1>
+  <p className="lead mb-4 text-muted">
+    Your comprehensive solution for efficient waste management.
+  </p>
 
-            <div className="d-flex justify-content-center flex-wrap gap-3 mb-5">
-              <button
-                className="btn btn-success btn-lg shadow-lg lift floating-btn"
-                onClick={() => setOpenSignUp(true)}
-              >
-                Get Started
-              </button>
-              <button
-                onClick={() => scrollToSection("about")}
-                className="btn btn-outline-secondary btn-lg shadow-lg lift floating-btn"
-              >
-                Learn More
-              </button>
-            </div>
-          </div>
+  <div className="d-flex justify-content-center flex-wrap gap-3 mb-5">
+    <button
+      className="btn btn-success btn-lg shadow lift floating-btn"
+      onClick={() => setOpenSignUp(true)}
+    >
+      Get Started
+    </button>
+    <button
+      onClick={() => scrollToSection("about")}
+      className="btn btn-outline-secondary btn-lg shadow lift floating-btn"
+    >
+      Learn More
+    </button>
+  </div>
+</div>
+
 
           {/* Truck and Trees */}
-          <div className="position-relative w-100 overflow-hidden mb-5" style={{ height: "230px", zIndex: 2 }}>
+          <div className="position-relative w-100 overflow-hidden mb-5" style={{ height: "230px", zIndex: 2, marginTop: "20px" }}>
             {/* Trees Layer */}
             <div className="position-absolute bottom-0 start-0 w-100 d-flex justify-content-between px-4" style={{ zIndex: 1 }}>
               {[...Array(4)].map((_, i) => (
@@ -184,22 +154,24 @@ function LandingPage() {
           </div>
 
           {/* Features */}
-          <div className="row mt-5 position-relative" style={{ zIndex: 2 }}>
-            {[
-              { title: "♻️ Smart Recycling", text: "Intelligent sorting and recycling management.", color: "text-success" },
-              { title: "👥 Community Focused", text: "Connect with your community for sustainability.", color: "text-primary" },
-              { title: "🛡️ Secure & Reliable", text: "Trust our secure platform with 24/7 monitoring.", color: "text-warning" },
-            ].map((feature, index) => (
-              <div className="col-md-4 mb-4" key={index}>
-                <div className="card shadow-sm border-0 h-100 bg-white floating-feature">
-                  <div className="card-body text-center">
-                    <h5 className={`fw-bold ${feature.color}`}>{feature.title}</h5>
-                    <p className="text-muted">{feature.text}</p>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
+<div className="row mt-5 position-relative" style={{ zIndex: 2 }}>
+  {[
+    { title: "♻️ Smart Recycling", text: "Intelligent sorting and recycling management.", color: "text-success" },
+    { title: "👥 Community Focused", text: "Connect with your community for sustainability.", color: "text-primary" },
+    { title: "🛡️ Secure & Reliable", text: "Trust our secure platform with 24/7 monitoring.", color: "text-warning" },
+  ].map((feature, index) => (
+    <div className="col-md-4 mb-4" key={index}>
+      <div className="card shadow border-0 h-100 bg-white floating-feature">
+        <div className="card-line"></div>
+        <div className="card-body text-center">
+          <h5 className={`fw-bold ${feature.color}`}>{feature.title}</h5>
+          <p className="text-muted">{feature.text}</p>
+        </div>
+      </div>
+    </div>
+  ))}
+</div>
+
         </div>
       </section>
 
@@ -217,11 +189,12 @@ function LandingPage() {
           <div className="row justify-content-center">
             {[
               { icon: "bi bi-recycle", title: "Eco-Friendly System", text: "We promote zero-waste initiatives and smart recycling habits." },
-              { icon: "bi bi-globe2", title: "Community Impact", text: "Connecting citizens, waste collectors, and organizations for cleaner cities." },
+              { icon: "bi bi-globe2", title: "Community Impact", text: "Connecting citizens, waste collectors, and organizations for cleaner environment." },
               { icon: "bi bi-cpu", title: "Technology Driven", text: "Leveraging data and automation to improve waste tracking and efficiency." },
             ].map((item, index) => (
               <div className="col-md-4 mb-4" key={index}>
-                <div className="card h-100 shadow-sm border-0 floating-feature">
+                <div className="card h-100 shadow border-0 floating-feature">
+                  <div className="card-line"></div>
                   <div className="card-body text-center">
                     <i className={`${item.icon} text-success fs-1 mb-3`}></i>
                     <h5 className="fw-bold">{item.title}</h5>
@@ -249,7 +222,8 @@ function LandingPage() {
               { icon: "bi bi-people", title: "Community Engagement", text: "Empowering citizens to actively participate in sustainability efforts." },
             ].map((item, index) => (
               <div className="col-md-4 mb-4" key={index}>
-                <div className="card h-100 shadow-sm border-0 floating-feature">
+                <div className="card h-100 shadow border-0 floating-feature">
+                  <div className="card-line"></div>
                   <div className="card-body text-center">
                     <i className={`${item.icon} text-success fs-1 mb-3`}></i>
                     <h5 className="fw-bold">{item.title}</h5>
@@ -271,6 +245,51 @@ function LandingPage() {
       {/* Modals */}
       <LoginModal open={openLogin} handleClose={() => setOpenLogin(false)} />
       <SignUpModal open={openSignUp} handleClose={() => setOpenSignUp(false)} />
+        {/* Add this inside your style tag or CSS file */}
+<style>
+  {`
+    .floating-feature {
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .floating-feature:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+    }
+
+    .card-line {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 0%;
+  height: 4px;
+  background-color: #28a745; /* green line */
+  border-radius: 2px;
+  transition: all 0.4s ease;
+}
+
+.floating-feature:hover .card-line {
+  left: 0;
+  width: 100%;
+}
+
+/* Floating button */
+          .floating-btn {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+          }
+          .floating-btn:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+          }
+
+          .lift {
+            transition: all 0.3s ease;
+          }
+          .lift:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
+          }
+  `}
+</style>
     </div>
   );
 }
