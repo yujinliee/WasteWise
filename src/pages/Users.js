@@ -11,6 +11,7 @@ import {
   doc,
   updateDoc,
   deleteDoc,
+  getDocs
 } from "firebase/firestore";
 import { db } from "../Components/firebase";
 
@@ -21,19 +22,57 @@ const Users = () => {
   const [search, setSearch] = useState("");
   const [activeTab, setActiveTab] = useState("active");
   const [toast, setToast] = useState({ show: false, message: "", type: "" });
+  const [error, setError] = useState("");
 
-  // 🔥 Fetch users from Firestore
+  // 🔥 Fetch users from Firestore with error handling
   useEffect(() => {
-    const unsubscribe = onSnapshot(collection(db, "users"), (snapshot) => {
-      const fetchedUsers = snapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      }));
-      setUsers(fetchedUsers);
-      setLoading(false);
-    });
+    const fetchUsers = async () => {
+      try {
+        setLoading(true);
+        setError("");
+        
+        console.log("Starting to fetch users...");
+        
+        // Try both collection names
+        const collectionsToTry = ["users", "Users", "user", "User"];
+        
+        for (const collectionName of collectionsToTry) {
+          try {
+            console.log(`Trying collection: ${collectionName}`);
+            const querySnapshot = await getDocs(collection(db, collectionName));
+            
+            if (!querySnapshot.empty) {
+              const fetchedUsers = querySnapshot.docs.map((doc) => ({
+                id: doc.id,
+                ...doc.data(),
+              }));
+              
+              console.log(`Found ${fetchedUsers.length} users in collection: ${collectionName}`);
+              console.log("Users data:", fetchedUsers);
+              
+              setUsers(fetchedUsers);
+              setLoading(false);
+              return; // Exit if successful
+            }
+          } catch (err) {
+            console.log(`Collection ${collectionName} not accessible:`, err.message);
+          }
+        }
+        
+        // If no collections worked
+        setError("No users collection found. Please check your Firestore database.");
+        setUsers([]);
+        
+      } catch (err) {
+        console.error("Error fetching users:", err);
+        setError(`Failed to load users: ${err.message}`);
+        setUsers([]);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-    return () => unsubscribe();
+    fetchUsers();
   }, []);
 
   // 🧠 Filter based on tab and search
@@ -46,7 +85,8 @@ const Users = () => {
     .filter(
       (user) =>
         user.email?.toLowerCase().includes(search.toLowerCase()) ||
-        user.displayName?.toLowerCase().includes(search.toLowerCase())
+        user.displayName?.toLowerCase().includes(search.toLowerCase()) ||
+        user.name?.toLowerCase().includes(search.toLowerCase())
     );
 
   // 🔥 Modal Handlers
@@ -69,36 +109,53 @@ const Users = () => {
   // ✅ Delete from Firestore
   const confirmDelete = async () => {
     if (!selectedUser) return;
-    await deleteDoc(doc(db, "users", selectedUser.id));
-    const modal = window.bootstrap.Modal.getInstance(
-      document.getElementById("deleteModal")
-    );
-    modal.hide();
-    showToast(`Deleted ${selectedUser.displayName}`, "danger");
+    
+    try {
+      await deleteDoc(doc(db, "users", selectedUser.id));
+      const modal = window.bootstrap.Modal.getInstance(
+        document.getElementById("deleteModal")
+      );
+      modal.hide();
+      showToast(`Deleted ${getUserDisplayName(selectedUser)}`, "danger");
+    } catch (err) {
+      console.error("Delete error:", err);
+      showToast(`Failed to delete user: ${err.message}`, "danger");
+    }
   };
 
   // ✅ Archive or Restore in Firestore
   const confirmArchive = async () => {
     if (!selectedUser) return;
-    await updateDoc(doc(db, "users", selectedUser.id), {
-      archived: !selectedUser.archived,
-    });
-    const modal = window.bootstrap.Modal.getInstance(
-      document.getElementById("archiveModal")
-    );
-    modal.hide();
-    showToast(
-      `${selectedUser.archived ? "Restored" : "Archived"} ${
-        selectedUser.displayName
-      }`,
-      selectedUser.archived ? "success" : "warning"
-    );
+    
+    try {
+      await updateDoc(doc(db, "users", selectedUser.id), {
+        archived: !selectedUser.archived,
+      });
+      const modal = window.bootstrap.Modal.getInstance(
+        document.getElementById("archiveModal")
+      );
+      modal.hide();
+      showToast(
+        `${selectedUser.archived ? "Restored" : "Archived"} ${
+          getUserDisplayName(selectedUser)
+        }`,
+        selectedUser.archived ? "success" : "warning"
+      );
+    } catch (err) {
+      console.error("Archive error:", err);
+      showToast(`Failed to archive user: ${err.message}`, "danger");
+    }
   };
 
   // ✅ Restore directly from archived tab
   const handleRestoreClick = async (user) => {
-    await updateDoc(doc(db, "users", user.id), { archived: false });
-    showToast(`Restored ${user.displayName}`, "success");
+    try {
+      await updateDoc(doc(db, "users", user.id), { archived: false });
+      showToast(`Restored ${getUserDisplayName(user)}`, "success");
+    } catch (err) {
+      console.error("Restore error:", err);
+      showToast(`Failed to restore user: ${err.message}`, "danger");
+    }
   };
 
   // 🪄 Toast function
@@ -107,6 +164,27 @@ const Users = () => {
     setTimeout(() => {
       setToast({ show: false, message: "", type: "" });
     }, 2500);
+  };
+
+  // 🔒 Safe user data access functions with null checks
+  const getUserDisplayName = (user) => {
+    if (!user) return "Unknown User";
+    return user.displayName || user.name || user.email || "Unknown User";
+  };
+
+  const getUserEmail = (user) => {
+    if (!user) return "No email";
+    return user.email || "No email";
+  };
+
+  const getUserJoinDate = (user) => {
+    if (!user) return "Unknown date";
+    return user.joinDate || user.createdAt || user.dateCreated || "Unknown date";
+  };
+
+  const getUserStatus = (user) => {
+    if (!user) return "Unknown";
+    return user.status || "Active";
   };
 
   const getStatusBadgeClass = (status) =>
@@ -124,7 +202,7 @@ const Users = () => {
 
   // 📊 Updated counts
   const activeCount = users.filter(
-    (u) => u.status === "Active" && !u.archived
+    (u) => getUserStatus(u) === "Active" && !u.archived
   ).length;
   const archivedCount = users.filter((u) => u.archived).length;
 
@@ -155,6 +233,19 @@ const Users = () => {
                 <p className="text-light text-start mb-0">
                   Manage, archive, and organize system users efficiently.
                 </p>
+              </div>
+              
+              {/* Debug Info */}
+              <div className="text-end">
+                <small className="text-light opacity-75">
+                  Total Users: {users.length}
+                </small>
+                {error && (
+                  <div className="alert alert-warning mt-2 p-2 small">
+                    <i className="bi bi-exclamation-triangle me-1"></i>
+                    {error}
+                  </div>
+                )}
               </div>
             </div>
 
@@ -205,7 +296,20 @@ const Users = () => {
             {/* Table */}
             <div className="card border-0 shadow-sm rounded-3 animate__animated animate__fadeInUp">
               <div className="card-body">
-                {filteredUsers.length > 0 ? (
+                {error ? (
+                  <div className="text-center py-5">
+                    <i className="bi bi-exclamation-triangle display-5 text-warning d-block mb-3"></i>
+                    <h5 className="text-warning">Unable to Load Users</h5>
+                    <p className="text-muted">{error}</p>
+                    <button 
+                      className="btn btn-primary mt-2"
+                      onClick={() => window.location.reload()}
+                    >
+                      <i className="bi bi-arrow-clockwise me-2"></i>
+                      Retry
+                    </button>
+                  </div>
+                ) : filteredUsers.length > 0 ? (
                   <div className="table-responsive">
                     <table className="table table-hover align-middle">
                       <thead className="table-light">
@@ -220,22 +324,22 @@ const Users = () => {
                         {filteredUsers.map((user) => (
                           <tr key={user.id}>
                             <td>
-                              <strong>{user.displayName}</strong>
+                              <strong>{getUserDisplayName(user)}</strong>
                               <br />
-                              <small className="text-muted">{user.email}</small>
+                              <small className="text-muted">{getUserEmail(user)}</small>
                             </td>
                             <td>
                               <span
                                 className={`badge ${getStatusBadgeClass(
-                                  user.status
+                                  getUserStatus(user)
                                 )}`}
                               >
-                                {user.status}
+                                {getUserStatus(user)}
                               </span>
                             </td>
                             <td>
                               <small className="text-muted">
-                                {user.joinDate}
+                                {getUserJoinDate(user)}
                               </small>
                             </td>
                             <td className="text-center">
@@ -287,6 +391,13 @@ const Users = () => {
                       No {activeTab === "active" ? "active" : "archived"} users
                       found.
                     </p>
+                    {users.length === 0 && (
+                      <div className="mt-3">
+                        <small className="text-muted">
+                          No users found in database. Check your Firestore collection.
+                        </small>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
@@ -307,7 +418,7 @@ const Users = () => {
               <div className="modal-body text-center py-4">
                 <i className="bi bi-exclamation-triangle text-danger fs-1 mb-3"></i>
                 <h5 className="fw-semibold mb-2">
-                  Delete <span className="text-danger">{selectedUser?.displayName}</span>?
+                  Delete <span className="text-danger">{getUserDisplayName(selectedUser)}</span>?
                 </h5>
                 <p className="text-muted small mb-0">This action cannot be undone.</p>
               </div>
@@ -350,7 +461,7 @@ const Users = () => {
                 ></i>
                 <h5 className="fw-semibold mb-2">
                   {selectedUser?.archived ? "Restore" : "Archive"}{" "}
-                  <span className="text-dark">{selectedUser?.displayName}</span>?
+                  <span className="text-dark">{getUserDisplayName(selectedUser)}</span>?
                 </h5>
                 <p className="text-muted small mb-0">
                   {selectedUser?.archived
@@ -393,15 +504,6 @@ const Users = () => {
           </div>
         )}
       </div>
-
-      <style jsx>{`
-        .widget {
-          transition: all 0.3s ease;
-        }
-        .widget:hover {
-          transform: translateY(-5px);
-        }
-      `}</style>
     </div>
   );
 };

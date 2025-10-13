@@ -5,7 +5,8 @@ import {
   sendEmailVerification,
   signOut,
 } from "firebase/auth";
-import { auth } from "../Components/firebase";
+import { auth, db } from "../Components/firebase";
+import { doc, setDoc } from "firebase/firestore";
 import SuccessPopup from "../Components/SuccessPopup";
 import "bootstrap/dist/css/bootstrap.min.css";
 
@@ -13,7 +14,7 @@ function SignUpModal({ open, handleClose }) {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [successOpen, setSuccessOpen] = useState(false);
-  const [activeModal, setActiveModal] = useState(null); // 'terms' or 'privacy'
+  const [activeModal, setActiveModal] = useState(null);
 
   const initialForm = {
     firstName: "",
@@ -67,22 +68,46 @@ function SignUpModal({ open, handleClose }) {
     if (Object.keys(newErrors).length > 0) return;
 
     try {
+      // Create user in Firebase Authentication
       const userCredential = await createUserWithEmailAndPassword(
         auth,
         formData.email,
         formData.password
       );
 
-      await updateProfile(userCredential.user, {
+      const user = userCredential.user;
+
+      // Update display name
+      await updateProfile(user, {
         displayName: `${formData.firstName} ${formData.lastName}`,
       });
 
-      await sendEmailVerification(userCredential.user);
+      // 🔥 SAVE USER TO FIRESTORE - This was missing!
+      await setDoc(doc(db, "users", user.uid), {
+        uid: user.uid,
+        displayName: `${formData.firstName} ${formData.lastName}`,
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        email: formData.email,
+        status: "Active",
+        archived: false,
+        joinDate: new Date().toLocaleDateString(),
+        createdAt: new Date().toISOString(),
+        emailVerified: false,
+      });
+
+      console.log("✅ User created in Firestore:", user.uid);
+
+      // Send verification email
+      await sendEmailVerification(user);
+      
+      // Sign out after registration
       await signOut(auth);
 
       setFormData(initialForm);
       setSuccessOpen(true);
     } catch (error) {
+      console.error("Signup error:", error);
       alert("❌ " + error.message);
     }
   };
